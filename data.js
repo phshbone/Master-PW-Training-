@@ -21,10 +21,65 @@ window.APP_DATA = {
       steps:['Verify and remove the right-side red tape seal.','Place the removed tape seal on the index card in the daily envelope.','Remove the outgoing canister.','Verify the red front canister seal.','Apply and verify the outgoing blue transport seal.','Give the sealed outgoing canister to the runner.','Record the incoming canister and blue seal information.','Remove the incoming blue seal and place it in the green used-seal bag.','Insert the replacement canister and lock it into place.','Apply the new red tape panel seal across both surfaces.','Carry forward known information only after physical verification.']
     },
     {
-      id:'checkin', title:'Standard Voter Check-In', modes:['early','election'],
+      id:'checkin', title:'Standard Voter Check-In', modes:['early','election'], type:'teaching',
       summary:'Confirm the voter, inspect flags, verify signature, preload the activation card, and complete check-in once.',
-      badges:['Same for Both','Official Procedure'],
-      steps:['Search for the voter using the correct search method.','Confirm the correct voter record.','Inspect eligibility and all flags.','Obtain and verify the voter signature.','Add worker initials.','Confirm one blank activation card is loaded.','Complete check-in.','Manage authority slips and return to Process Next Voter.']
+      badges:['Same for Both','Teaching Guide Prototype'],
+      lessons:[
+        {
+          id:'search', title:'Search for the voter',
+          lead:'Use the correct search method for the current mode and keep searching before escalating.',
+          official:['Use the voter information provided to locate the correct record.','Review the result list carefully before selecting a voter.'],
+          why:'A rushed search can lead to the wrong record, a missed existing record, or an unnecessary escalation.',
+          tips:['Early voting uses the countywide voter list, so search broadly and carefully.','Use alternate search methods when spelling, spacing, or a compound surname may affect the result.'],
+          mistakes:['Selecting the first similar name without verifying the record.','Treating a failed first search as proof that the voter is not registered.'],
+          actions:[]
+        },
+        {
+          id:'confirm', title:'Confirm the correct voter record',
+          lead:'Verify that the record on screen belongs to the person standing in front of you.',
+          official:['Ask the voter to state information used to confirm the record, such as address or date of birth.','Compare the stated information with the voter record before continuing.'],
+          why:'People with identical or similar names may live at the same address or appear next to one another in search results.',
+          tips:['Date of birth is especially useful when distinguishing a parent and adult child or possible senior/junior records.','Use the information in the record rather than relying on appearance alone.','When something feels inconsistent, pause and verify before moving forward.'],
+          mistakes:['Reading the answer from the screen and asking the voter only to agree.','Assuming a person is the correct voter because the name and address look familiar.'],
+          actions:[]
+        },
+        {
+          id:'flags', title:'Review eligibility and every flag',
+          lead:'Do not move past the voter screen until eligibility and all visible flags have been reviewed.',
+          official:['Read and follow each applicable ePollbook instruction.','Escalate when the flag or remedy is unclear.'],
+          why:'Flags may change whether the voter receives a regular ballot, provisional ballot, identification request, or Board assistance.',
+          tips:['Say the flag name aloud during training so the worker learns to notice it.','Teach workers to stop rather than click through an unfamiliar message.'],
+          mistakes:['Focusing on the voter’s name and missing a flag.','Treating different flags as though they all have the same remedy.'],
+          actions:[]
+        },
+        {
+          id:'signature', title:'Obtain and verify the signature',
+          lead:'Follow the signature prompts and distinguish a current mismatch from a No Signature on File flag.',
+          official:['Have the voter sign where directed.','Use Sign Again when the current signature needs another attempt.','Contact the Board when the discrepancy remains unresolved.'],
+          why:'No Signature on File and a mismatch during the current check-in are different situations and may require different procedures.',
+          tips:['Slow the process down before asking for a second signature so the voter understands why another attempt is needed.'],
+          mistakes:['Treating every signature issue as provisional.','Ignoring the distinction between a missing stored signature and a current mismatch.'],
+          actions:[]
+        },
+        {
+          id:'preload', title:'Confirm the activation card is preloaded',
+          lead:'Before completing check-in, physically confirm that one blank activation card is loaded in the ExpressVote printer.',
+          official:['Confirm one blank activation card is loaded before every check-in.','When check-in is complete but the card was not preloaded, use Reprint.','Do not check the voter in again.'],
+          why:'A missed preload interrupts the voter flow and creates a recovery situation that workers may accidentally handle as a second check-in.',
+          tips:['Place a small handwritten PRELOAD CARD reminder on or directly in front of the Epson printer.','The authority slip is often the last item removed from the Epson printer, making that location an effective final visual reminder.','Keep blank cards in one consistent location and build the preload check into the transition between voters.'],
+          mistakes:['Completing check-in without physically checking the card slot.','Checking the voter in a second time instead of using Reprint.'],
+          actions:['Blank activation card physically confirmed before completing check-in.']
+        },
+        {
+          id:'complete', title:'Complete check-in and manage printed materials',
+          lead:'Complete the transaction once, keep the printed materials organized, and return the station to Process Next Voter.',
+          official:['Complete check-in only after the voter record, flags, signature, initials, and preload are confirmed.','Manage the authority slip and activation card according to the current instructions.','Return the ePollbook to Process Next Voter.'],
+          why:'A consistent closing rhythm prevents materials from being mixed between voters and leaves the station ready for the next person.',
+          tips:['Use the same placement pattern for the authority slip and activation card at every station.','Teach the worker to perform a final screen-and-printer reset before greeting the next voter.'],
+          mistakes:['Beginning the next search while materials from the prior voter remain on the work surface.','Repeating check-in because an expected printout is missing.'],
+          actions:['Worker initials completed.','Activation card and authority slip handled correctly.','Station returned to Process Next Voter.']
+        }
+      ]
     },
     {
       id:'mailin', title:'Mail-In Ballot', modes:['early','election'],
@@ -60,6 +115,22 @@ window.APP_DATA = {
       steps:['At the machine, have the voter select Cancel.','Send two workers from different parties to the machine.','Protect voter privacy during the administrative screen.','Use the voter-choice cancellation reason and eject the card.','During early voting, process the spoil at any appropriate site station.','On Election Day, return the voter to the assigned district table.','Ask whether the voter wants another ballot now.','For reissue, preload a blank activation card before printing.','For no reissue, do not create another check-in.','Cross out the barcode, fold to the barcode, write SPOILED, and place the card in the green bag.']
     }
   ],
+  dosDonts:{
+    dos:[
+      {text:'Follow the current screen and secured binder instructions in order.',detail:'Stop when a screen, seal, report, number, or physical setup differs from expectations.',tags:['Official Procedure','Same for Both']},
+      {text:'Confirm the correct voter record before continuing.',detail:'Use voter-stated information such as address or date of birth to distinguish similar records.',tags:['Official Procedure','Check-In']},
+      {text:'Review every voter flag and follow the specific remedy.',detail:'Different flags can lead to different outcomes; do not treat them as interchangeable.',tags:['Official Procedure','Check-In']},
+      {text:'Confirm one blank activation card is loaded before completing check-in.',detail:'A missing preload is recovered through Reprint after check-in is complete.',tags:['Current Morris Update','Check-In']},
+      {text:'Stop and ask the master worker or Board before improvising.',detail:'Escalation is safer than creating a duplicate record or using the wrong ballot process.',tags:['Official Procedure','Same for Both']}
+    ],
+    donts:[
+      {text:'Do not ask every voter for identification.',detail:'Request identification only when the voter record shows Voter ID Required.',tags:['Official Do Not','Check-In']},
+      {text:'Do not select Voter Not Found without express Board direction.',detail:'Continue searching and escalate before beginning any new-record process.',tags:['Critical','Same for Both']},
+      {text:'Do not check a voter in a second time to recover a missing printout.',detail:'Use Reprint when the original check-in is already complete.',tags:['Current Morris Update','Reprint']},
+      {text:'Do not confuse Reprint with Spoil.',detail:'Reprint recovers a missing printed item; Spoil cancels an uncast ballot card.',tags:['Current Morris Update','Same for Both']},
+      {text:'Do not select Close Poll during an intermediate early-voting night.',detail:'Use the secured nightly shutdown path in the current binder.',tags:['Critical','Early Voting']}
+    ]
+  },
   trainingTopics:[
     'Opening and worker orientation','Numbered station setup','Activation-card preload','Standard voter check-in','Mail-In Ballot','Already Voted','Early Voted','Voter Not Found','ID Required','Provisional ballots','Reprint','Spoil','Crowd flow','Who to call before improvising'
   ],
