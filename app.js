@@ -86,6 +86,17 @@ function sanitizeBoardQuestions(value) {
   })).filter(question => question.text);
 }
 
+function sanitizeExpandedProcedures(value) {
+  if (!isObject(value)) return {};
+  const openByMode = {};
+  Object.entries(value).forEach(([key, open]) => {
+    const [mode, procedureId] = key.split(':');
+    const validProcedure = data.procedures.some(procedure => procedure.id === procedureId && procedure.modes.includes(mode));
+    if (open === true && validProcedure) openByMode[mode] = key;
+  });
+  return Object.fromEntries(Object.values(openByMode).map(key => [key, true]));
+}
+
 function sanitizeCurrentState(raw) {
   if (!isObject(raw)) throw new Error('Backup state must be an object.');
   const base = freshState();
@@ -97,9 +108,7 @@ function sanitizeCurrentState(raw) {
     route: routes.includes(route) ? route : 'procedures',
     mode,
     checklist: sanitizeChecklist(raw.checklist),
-    expandedProcedures: isObject(raw.expandedProcedures)
-      ? Object.fromEntries(Object.entries(raw.expandedProcedures).filter(([, open]) => open === true))
-      : {},
+    expandedProcedures: sanitizeExpandedProcedures(raw.expandedProcedures),
     openLesson: typeof raw.openLesson === 'string' ? raw.openLesson : null,
     dailyNotes: typeof raw.dailyNotes === 'string' ? raw.dailyNotes.slice(0, 20000) : '',
     history: sanitizeHistory(raw.history),
@@ -264,7 +273,7 @@ function sectionHeader(procedure, progress, expanded) {
   return `<button class="procedure-toggle" data-toggle-procedure="${esc(procedure.id)}" aria-expanded="${expanded}">
     <span class="procedure-title-row"><span class="procedure-title">${esc(procedure.title)}</span>
       <span class="section-progress ${progress.complete ? 'complete' : ''}">
-        ${progress.complete ? '<span aria-hidden="true">✓</span> Complete' : `${progress.covered} of ${progress.total}`}
+        <span class="progress-star" aria-hidden="true">★</span> ${progress.complete ? 'Complete' : `${progress.covered} of ${progress.total}`}
       </span>
     </span>
     <span class="summary">${esc(procedure.summary)}</span>
@@ -326,12 +335,12 @@ function teachingProcedureMarkup(procedure) {
         <div class="lesson-summary-row">
           <input type="checkbox" id="${esc(inputId)}" data-cover-key="${esc(key)}" data-section="${esc(procedure.id)}" ${state.checklist[key] ? 'checked' : ''}>
           <label for="${esc(inputId)}"><span class="lesson-number">${index + 1}</span><span class="lesson-title-wrap"><strong>${esc(lesson.title)}</strong><small>${esc(lesson.lead)}</small></span></label>
-          <button class="lesson-toggle" data-open-lesson="${esc(openKey)}" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'} reference details for ${esc(lesson.title)}"><span class="chevron" aria-hidden="true">⌄</span></button>
+          <button class="lesson-toggle" data-open-lesson="${esc(openKey)}" aria-expanded="${open}" aria-label="${open ? 'Hide' : 'Show'} reference details for ${esc(lesson.title)}"><span class="expand-symbol" aria-hidden="true">${open ? '−' : '+'}</span></button>
         </div>
         <div class="lesson-detail">
           ${infoBlock('Official Procedure', 'official', lesson.official)}
           ${infoBlock('Why It Matters', 'why', lesson.why)}
-          ${infoBlock('Master Worker Tip', 'tip', lesson.tips)}
+          ${infoBlock('Master Poll Worker Tip', 'tip', lesson.tips)}
           ${infoBlock('Common Mistake', 'mistake', lesson.mistakes)}
           ${infoBlock('Practice Points', 'actions', lesson.actions)}
         </div>
@@ -356,12 +365,14 @@ function renderProcedures() {
 
 function renderLookup() {
   const query = (state.lookupQuery || '').trim().toLowerCase();
-  const list = modeProcedures().filter(procedure => JSON.stringify(procedure).toLowerCase().includes(query));
+  const list = query ? modeProcedures().filter(procedure => JSON.stringify(procedure).toLowerCase().includes(query)) : [];
   title.textContent = 'Quick Lookup';
   return `${pageHeading('Quick Lookup', `Search the existing ${modeLabel()} guide and warnings.`)}
     <label class="sr-only" for="lookupInput">Search procedures</label>
     <input id="lookupInput" class="search-box" type="search" placeholder="Search mail-in, preload, reprint, spoil…" value="${esc(state.lookupQuery)}">
-    <div class="lookup-results">${list.length ? list.map(procedureMarkup).join('') : '<div class="card empty">No matching procedure.</div>'}</div>`;
+    <div class="lookup-results">${!query
+      ? '<div class="card empty">Enter a word or procedure to search. The complete training sequence remains in the Checklist.</div>'
+      : list.length ? list.map(procedureMarkup).join('') : '<div class="card empty">No matching procedure.</div>'}</div>`;
 }
 
 function renderProgress() {
@@ -381,7 +392,7 @@ function renderProgress() {
 function renderDosDonts() {
   title.textContent = 'Procedure Reminders';
   const renderItems = (items, type) => items.map((item, index) => `<article class="rule-card ${type}">
-    <button class="rule-toggle" data-rule-toggle="${type}-${index}" aria-expanded="false"><span class="rule-icon">${type === 'do' ? 'DO' : 'DON’T'}</span><strong>${esc(item.text)}</strong><span class="chevron" aria-hidden="true">⌄</span></button>
+    <button class="rule-toggle" data-rule-toggle="${type}-${index}" aria-expanded="false"><span class="rule-icon">${type === 'do' ? 'DO' : 'DON’T'}</span><strong>${esc(item.text)}</strong><span class="expand-symbol" aria-hidden="true">+</span></button>
     <div class="rule-detail"><p>${esc(item.detail)}</p>${badges(item.tags)}</div>
   </article>`).join('');
   return `${pageHeading('Procedure Reminders', 'Fast reminders retained from the existing guide; verify current Board materials whenever instructions differ.')}
@@ -455,9 +466,14 @@ function bindDynamic() {
   document.querySelectorAll('[data-toggle-procedure]').forEach(button => {
     button.onclick = () => {
       const key = `${state.mode}:${button.dataset.toggleProcedure}`;
-      state.expandedProcedures[key] = !state.expandedProcedures[key];
+      const wasExpanded = Boolean(state.expandedProcedures[key]);
+      Object.keys(state.expandedProcedures).forEach(openKey => {
+        if (openKey.startsWith(`${state.mode}:`)) delete state.expandedProcedures[openKey];
+      });
+      if (!wasExpanded) state.expandedProcedures[key] = true;
       saveState();
       render();
+      requestAnimationFrame(() => document.querySelector(`[data-toggle-procedure="${CSS.escape(button.dataset.toggleProcedure)}"]`)?.focus());
     };
   });
   document.querySelectorAll('[data-cover-key]').forEach(checkbox => {
@@ -486,10 +502,14 @@ function bindDynamic() {
       const card = button.closest('.rule-card');
       const expanded = card.classList.toggle('expanded');
       button.setAttribute('aria-expanded', String(expanded));
+      button.querySelector('.expand-symbol').textContent = expanded ? '−' : '+';
     };
   });
   document.querySelectorAll('[data-jump-procedure]').forEach(button => {
     button.onclick = () => {
+      Object.keys(state.expandedProcedures).forEach(openKey => {
+        if (openKey.startsWith(`${state.mode}:`)) delete state.expandedProcedures[openKey];
+      });
       state.expandedProcedures[`${state.mode}:${button.dataset.jumpProcedure}`] = true;
       state.route = 'procedures';
       saveState();
