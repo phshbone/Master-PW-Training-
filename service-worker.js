@@ -1,4 +1,4 @@
-const CACHE = 'mpwg-phase-1-v2';
+const CACHE = 'mpwg-phase-1-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
