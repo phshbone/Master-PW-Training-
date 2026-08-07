@@ -4,6 +4,10 @@ window.APP_DATA = {
       id:'opening', title:'Opening Overview', modes:['early','election'],
       summary:'Gather workers, verify equipment identity, and follow the secured binder sequence without working ahead.',
       badges:['Same for Both','Official Procedure'],
+      sources:[
+        {type:'official',title:'New Jersey District Board Member Training Manual',detail:'Polling-place setup and opening, manual pages 4–9',url:'https://www.nj.gov/state/elections/assets/pdf/guidelines/2024/2024-1025-board-worker-training-manual.pdf'},
+        {type:'morris',title:'Current secured machine binder and Morris County master-poll-worker training',detail:'Binder-specific sequence must be verified against the copy issued for the election'}
+      ],
       warning:'Use the current machine binder. Do not reconstruct secured opening instructions from memory.',
       stepIds:['gather-workers','badges-assignments','stop-on-mismatch','match-binders','numbered-epollbooks','preload-test-card'],
       steps:['Gather workers at the master table or cage.','Distribute badges and explain assignments.','Explain that workers must stop if a seal, report, screen, or number differs.','Match each binder to the correct machine.','Set up one numbered ePollbook station at a time.','Confirm one blank activation card is loaded before test check-in.']
@@ -12,6 +16,9 @@ window.APP_DATA = {
       id:'morning', title:'Intermediate Morning Opening', modes:['early'],
       summary:'Verify the carried-forward media-door seal, power on, print readiness report, and prepare the machine.',
       badges:['Early Voting','Master Worker Practice'],
+      sources:[
+        {type:'morris',title:'Morris County master-poll-worker training and current secured Early Voting binder',detail:'Trainer-confirmed workflow; verify seal fields and sequence against the issued binder'}
+      ],
       stepIds:['verify-carried-seal','initial-seal-log','bag-used-seal','open-media-door','power-on-secure-key','print-readiness-report','review-initial-report','file-daily-report','confirm-accessible-setup'],
       steps:['Compare the numbered string seal with the carried-forward value.','Initial the seal log after physical verification.','Cut the seal and place it in the green used-seal bag.','Open the media-access door with the barrel key.','Power on, close the door, remove the key, and return it to the red pouch.','Print the System Readiness Report.','Have two workers from different parties review and initial the report.','Place the report into the correct daily black pouch.','Confirm power, status light, locked wheels, curtains, rods, and accessible setup.']
     },
@@ -19,6 +26,10 @@ window.APP_DATA = {
       id:'shutdown', title:'Intermediate Nightly Shutdown', modes:['early'],
       summary:'Reconcile, exchange the canister, reseal, power down, and prepare for the next day.',
       badges:['Early Voting','Critical'],
+      sources:[
+        {type:'morris',title:'Morris County master-poll-worker training and current secured Early Voting binder',detail:'Trainer experience'},
+        {type:'pending',title:'Exact nightly shutdown sequence',detail:'Awaiting final trainer and Board/binder verification before use as official instruction'}
+      ],
       warning:'DO NOT SELECT CLOSE POLL during an ordinary intermediate early-voting night.',
       stepIds:['verify-remove-tape-seal','file-tape-seal','remove-outgoing-canister','verify-front-seal','apply-transport-seal','handoff-canister','record-incoming-canister','bag-incoming-seal','insert-replacement-canister','apply-panel-seal','carry-forward-after-verification'],
       steps:['Verify and remove the right-side red tape seal.','Place the removed tape seal on the index card in the daily envelope.','Remove the outgoing canister.','Verify the red front canister seal.','Apply and verify the outgoing blue transport seal.','Give the sealed outgoing canister to the runner.','Record the incoming canister and blue seal information.','Remove the incoming blue seal and place it in the green used-seal bag.','Insert the replacement canister and lock it into place.','Apply the new red tape panel seal across both surfaces.','Carry forward known information only after physical verification.']
@@ -27,6 +38,10 @@ window.APP_DATA = {
       id:'checkin', title:'Standard Voter Check-In', modes:['early','election'], type:'teaching',
       summary:'Confirm the voter, inspect flags, verify signature, preload the activation card, and complete check-in once.',
       badges:['Same for Both','Teaching Guide Prototype'],
+      sources:[
+        {type:'official',title:'Morris County Election Day Poll Worker Manual',detail:'ePollbook checking-in, assistance, flags, District Lookup, and reprint; manual pages 13–29',url:'https://www.morriscountynj.gov/files/sharedassets/public/v/1/departments/elections/poll-worker-manual.pdf'},
+        {type:'morris',title:'Morris County master-poll-worker training and trainer experience',detail:'Teaching tips, common mistakes, and floor-practice details'}
+      ],
       lessons:[
         {
           id:'search', title:'Search for the voter',
@@ -88,6 +103,10 @@ window.APP_DATA = {
       id:'mailin', title:'Mail-In Ballot', modes:['early','election'],
       summary:'A mail-in voter cannot receive a regular machine ballot and must be processed provisionally when voting in person.',
       badges:['Same for Both','Current Morris Update'],
+      sources:[
+        {type:'official',title:'New Jersey District Board Member Training Manual',detail:'Mail-In Ballot Voter and provisional-ballot sections, manual pages 18 and 27–28',url:'https://www.nj.gov/state/elections/assets/pdf/guidelines/2024/2024-1025-board-worker-training-manual.pdf'},
+        {type:'official',title:'Morris County Election Day Poll Worker Manual',detail:'Mail-in ballot processing, manual page 21',url:'https://www.morriscountynj.gov/files/sharedassets/public/v/1/departments/elections/poll-worker-manual.pdf'}
+      ],
       warning:'Do not accept a completed mail-in ballot at the polling location.',
       stepIds:['confirm-mail-in-flag','explain-no-regular-ballot','process-provisionally','box-13-opt-out','direct-returned-mail-in'],
       steps:['Confirm the Mail-In Ballot flag.','Explain that the voter cannot receive a regular machine ballot.','Process the voter provisionally.','Use Box 13 on the provisional envelope for mail-in opt-out when requested.','Direct returned mail-in ballots to an authorized drop box or Board location.']
@@ -96,6 +115,10 @@ window.APP_DATA = {
       id:'notfound', title:'Voter Not Found', modes:['early','election'],
       summary:'Stop, search again, use alternate methods, and contact the Board before selecting Voter Not Found.',
       badges:['Same for Both','Critical'],
+      sources:[
+        {type:'official',title:'Morris County Election Day Poll Worker Manual',detail:'Searching for a voter, manual page 13',url:'https://www.morriscountynj.gov/files/sharedassets/public/v/1/departments/elections/poll-worker-manual.pdf'},
+        {type:'morris',title:'Morris County master-poll-worker training',detail:'Board-escalation emphasis before using Voter Not Found'}
+      ],
       warning:'DO NOT EVER SELECT VOTER NOT FOUND WITHOUT EXPRESS BOARD OF ELECTIONS DIRECTION.',
       stepIds:['confirm-spelling','search-again','alternate-search','address-district-lookup','contact-master-board','wait-for-direction'],
       steps:['Confirm spelling.','Search again.','Use alternate search methods.','Use address or district lookup.','Contact the master worker or Board.','Do not begin a new check-in unless directed.']
@@ -104,6 +127,11 @@ window.APP_DATA = {
       id:'provisional', title:'Provisional Ballots', modes:['early','election'],
       summary:'Complete the ePollbook process, secure the envelope, tally it, and reconcile the physical count.',
       badges:['Same for Both','Official Procedure'],
+      sources:[
+        {type:'official',title:'New Jersey District Board Member Training Manual',detail:'Voting by provisional ballot, manual pages 27–28 and closing inventory on page 32',url:'https://www.nj.gov/state/elections/assets/pdf/guidelines/2024/2024-1025-board-worker-training-manual.pdf'},
+        {type:'official',title:'New Jersey Early Voting Provisional Ballot Guide',detail:'Early Voting provisional processing and bag controls',url:'https://www.nj.gov/state/elections/assets/pdf/guidelines/2026/2026-0512-nj-guideline-early-voting-provisional-ballot.pdf'},
+        {type:'morris',title:'Morris County Election Day Poll Worker Manual and master-poll-worker training',detail:'County equipment, envelope, tally, and bag workflow',url:'https://www.morriscountynj.gov/files/sharedassets/public/v/1/departments/elections/poll-worker-manual.pdf'}
+      ],
       stepIds:['confirm-remedy','epollbook-provisional','preload-card','complete-envelope-notices','seal-card-in-envelope','place-in-orange-bag','add-tally','reconcile-envelope-count','sign-and-seal-bag'],
       steps:['Confirm that provisional voting is the correct remedy.','Complete the ePollbook provisional process.','Confirm a blank activation card is loaded before printing.','Complete the affirmation envelope and required notices.','Seal the completed activation card inside the envelope.','Place the sealed envelope in the orange provisional bag.','Add one tally mark to the reconciliation sheet.','At closing, physically count envelopes and compare with the tally sheet.','Obtain required signatures and seal through both grommet and zipper hole.']
     },
@@ -111,6 +139,10 @@ window.APP_DATA = {
       id:'reprint', title:'Reprint', modes:['early','election'],
       summary:'Recover an item from a completed check-in without checking the voter in again.',
       badges:['Same for Both','Current Morris Update'],
+      sources:[
+        {type:'official',title:'Morris County Election Day Poll Worker Manual',detail:'Re-Printing a Ballot or Authority Slip, manual pages 25–26',url:'https://www.morriscountynj.gov/files/sharedassets/public/v/1/departments/elections/poll-worker-manual.pdf'},
+        {type:'pending',title:'Printer-defective activation-card classification',detail:'Reprint versus spoil disposition and incident-report handling still require confirmation'}
+      ],
       warning:'Do not check the voter in again.',
       stepIds:['confirm-checkin-complete','identify-missing-item','use-reprint','confirm-printer','resume-workflow'],
       steps:['Confirm that check-in is already complete.','Identify the missing or damaged printed item.','Use Reprint for the activation card, authority slip, assistance form, or jammed print.','Confirm the correct printer is connected.','Return to the normal workflow after the replacement prints.']
@@ -119,6 +151,10 @@ window.APP_DATA = {
       id:'spoil', title:'Spoil a Ballot', modes:['early','election'],
       summary:'Cancel the uncast ballot, eject the card, process the spoil, and decide whether to reissue.',
       badges:['Early Voting / Election Day Difference','Current Morris Update'],
+      sources:[
+        {type:'official',title:'Morris County Election Day Poll Worker Manual',detail:'Spoiling a Ballot Procedures, manual pages 47–53',url:'https://www.morriscountynj.gov/files/sharedassets/public/v/1/departments/elections/poll-worker-manual.pdf'},
+        {type:'morris',title:'Morris County master-poll-worker training and trainer experience',detail:'Early Voting versus Election Day routing and floor practice'}
+      ],
       stepIds:['voter-selects-cancel','two-workers-respond','protect-privacy','cancel-and-eject','early-site-station','election-district-table','ask-about-reissue','preload-for-reissue','no-second-checkin','mark-and-bag-spoiled-card'],
       steps:['At the machine, have the voter select Cancel.','Send two workers from different parties to the machine.','Protect voter privacy during the administrative screen.','Use the voter-choice cancellation reason and eject the card.','During early voting, process the spoil at any appropriate site station.','On Election Day, return the voter to the assigned district table.','Ask whether the voter wants another ballot now.','For reissue, preload a blank activation card before printing.','For no reissue, do not create another check-in.','Cross out the barcode, fold to the barcode, write SPOILED, and place the card in the green bag.']
     }

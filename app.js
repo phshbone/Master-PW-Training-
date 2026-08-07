@@ -273,6 +273,27 @@ function sectionHeader(procedure, progress, expanded) {
   </button>`;
 }
 
+function sourceFooter(sources = []) {
+  if (!sources.length) {
+    return `<div class="source-footer source-pending"><strong>Source status:</strong> Not yet documented.</div>`;
+  }
+  const labels = {
+    official: 'Official manual',
+    morris: 'Morris County training / experience',
+    pending: 'Verification pending'
+  };
+  return `<details class="source-footer">
+    <summary>Sources and status</summary>
+    <ul>${sources.map(source => {
+      const label = labels[source.type] || 'Source';
+      const title = source.url
+        ? `<a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.title)}</a>`
+        : esc(source.title);
+      return `<li><span class="source-type ${esc(source.type || '')}">${esc(label)}</span><span>${title}${source.detail ? ` — ${esc(source.detail)}` : ''}</span></li>`;
+    }).join('')}</ul>
+  </details>`;
+}
+
 function standardProcedureMarkup(procedure) {
   const progress = sectionProgress(procedure);
   const expanded = isExpanded(procedure.id);
@@ -286,6 +307,7 @@ function standardProcedureMarkup(procedure) {
         return `<div class="step-item"><input type="checkbox" id="${esc(inputId)}" data-cover-key="${esc(key)}" data-section="${esc(procedure.id)}" ${state.checklist[key] ? 'checked' : ''}><label for="${esc(inputId)}">${index + 1}. ${esc(item.label)}</label></div>`;
       }).join('')}</div>
     </div>
+    ${sourceFooter(procedure.sources)}
   </section>`;
 }
 
@@ -315,6 +337,7 @@ function teachingProcedureMarkup(procedure) {
         </div>
       </article>`;
     }).join('')}</div>
+    ${sourceFooter(procedure.sources)}
   </section>`;
 }
 
