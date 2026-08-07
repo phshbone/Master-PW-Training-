@@ -1,12 +1,15 @@
 {
-  "name":"Master Poll Worker Guide",
-  "short_name":"Poll Guide",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#f4f7fb",
-  "theme_color":"#123a6d",
-  "icons":[
-    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},
-    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"}
+  "id": "./",
+  "name": "Master Poll Worker Guide",
+  "short_name": "MPW Guide",
+  "description": "A practical, offline-capable trainer checklist for Master Poll Workers.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#123a6d",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
   ]
 }
