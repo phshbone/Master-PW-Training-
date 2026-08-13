@@ -1,0 +1,21 @@
+MASTER POLL WORKER TRAINING — CLEAN BUILD 0.4
+
+This ZIP is intentionally a clean deployment package. The files are at the ZIP root
+so they can be uploaded directly to the GitHub Pages publishing branch.
+
+Recommended reset:
+
+1. Download and unzip this package.
+2. In the repository branch that GitHub Pages publishes from, remove the old site files.
+   If GitHub requires at least one file during the process, temporarily leave a placeholder.
+3. Upload ALL contents of this package, including the assets folder.
+4. Make sure index.html is at the ROOT of the publishing branch, not inside another folder.
+5. Remove the temporary placeholder if you used one.
+6. Wait for GitHub Pages to finish its build.
+7. First test with:
+   https://phshbone.github.io/Master-PW-Training-/?v=4
+
+This package uses service-worker cache:
+mpwg-0-4-clean
+
+Navigation requests are network-first to prevent an old cached app shell from masking a new deployment.
