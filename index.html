@@ -8,47 +8,32 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>Master Poll Worker Guide</title>
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div id="app" class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">Morris County training tool</p>
-        <h1 id="sectionTitle">Master Poll Worker Guide</h1>
-      </div>
+      <div><p class="eyebrow">Morris County training tool</p><h1 id="sectionTitle">Master Poll Worker Guide</h1></div>
       <button id="menuButton" class="icon-button" aria-label="Open menu">☰</button>
     </header>
-
     <section class="mode-strip" aria-label="Election mode">
-      <button class="mode-button active" data-mode="early">Early Voting</button>
-      <button class="mode-button" data-mode="election">Election Day</button>
+      <button class="mode-button active" data-mode="early">Early Voting</button><button class="mode-button" data-mode="election">Election Day</button>
     </section>
-
     <main id="mainContent" tabindex="-1"></main>
-
     <nav class="bottom-nav" aria-label="Primary navigation">
       <button data-route="home" class="nav-button active"><span>⌂</span><small>Home</small></button>
-      <button data-route="procedures" class="nav-button"><span>☑</span><small>Guide</small></button>
+      <button data-route="guide" class="nav-button"><span>☑</span><small>Guide</small></button>
+      <button data-route="procedures" class="nav-button"><span>≡</span><small>Procedures</small></button>
       <button data-route="lookup" class="nav-button"><span>⌕</span><small>Lookup</small></button>
       <button data-route="training" class="nav-button"><span>★</span><small>Training</small></button>
       <button data-route="report" class="nav-button"><span>▤</span><small>Report</small></button>
     </nav>
   </div>
-
   <dialog id="sideMenu" class="side-menu">
-    <div class="menu-header">
-      <h2>More</h2>
-      <button id="closeMenu" class="icon-button" aria-label="Close menu">×</button>
-    </div>
-    <button data-route="dosdonts">Official Do’s & Don’ts</button>
-    <button data-route="board">Board Questions</button>
-    <button data-route="current">Current Information</button>
-    <button data-route="settings">Settings & Backup</button>
+    <div class="menu-header"><h2>More</h2><button id="closeMenu" class="icon-button" aria-label="Close menu">×</button></div>
+    <button data-route="dosdonts">Official Do’s & Don’ts</button><button data-route="board">Board Questions</button><button data-route="current">Current Information</button><button data-route="settings">Settings & Backup</button>
   </dialog>
-
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js"></script><script src="app.js"></script>
 </body>
 </html>
