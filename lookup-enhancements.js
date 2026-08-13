@@ -1,4 +1,5 @@
-// Reconciliation lookup layer: keep Guide, Procedures, and Master/Tech Reference autonomous.
+// Reconciliation lookup layer: keep Guide, Procedures, and hidden Master/Tech Reference autonomous.
+// Morris tech topics remain indexed here for the future PIN-protected Master view, but are intentionally omitted from normal Lookup.
 const MASTER_TECH_REFERENCES = [
   {id:'tech-epson',title:'Epson Printer — Green Printer Icon',pages:'3',terms:'epson printer yellow icon green printer icon find printer accessory save boe touchpad device number',summary:'Reconnect the Epson printer to the matching Touchpad. Never select a different numbered printer.'},
   {id:'tech-expressvote',title:'ExpressVote Printer — Reconnect',pages:'4–5',terms:'expressvote printer activation card reconnect select printer find printer save rename printer',summary:'Reconnect the ExpressVote printer, verify the matching device number, save the connection, and escalate if it still fails.'},
@@ -11,26 +12,19 @@ function lookupHaystack(item){ return JSON.stringify(item).toLowerCase(); }
 function lookupCard(layer,title,summary,attrs){
   return `<button class="card lookup-result-card" ${attrs}><span class="lookup-layer">${esc(layer)}</span><strong>${esc(title)}</strong><span>${esc(summary||'Open result')}</span></button>`;
 }
-function lookupTechDetail(item){
-  if(!item) return '';
-  return `<article class="card lookup-tech-detail"><button class="back-link" data-close-tech>‹ Back to results</button><span class="lookup-layer">Master/Tech Reference</span><h3>${esc(item.title)}</h3><p>${esc(item.summary)}</p><div class="source-panel"><strong>Morris County Board of Elections — Troubleshooting Manual</strong><div class="small">Reference pages ${esc(item.pages)}. The full PDF will remain a separate attributed Master/Tech reference document.</div></div></article>`;
-}
 
 renderLookup = function(){
   const q=(state.lookupQuery||'').trim().toLowerCase();
   const procedures=q?fieldData.items.filter(p=>p.modes.includes(state.mode)&&lookupHaystack(p).includes(q)):[];
   const guide=q?data.procedures.filter(p=>p.modes.includes(state.mode)&&lookupHaystack(p).includes(q)):[];
-  const tech=q?MASTER_TECH_REFERENCES.filter(t=>(`${t.title} ${t.terms} ${t.summary}`).toLowerCase().includes(q)):[];
-  const techTarget=MASTER_TECH_REFERENCES.find(t=>t.id===state.lookupTechTarget);
   title.textContent='Quick Lookup';
   const groups=[];
   if(procedures.length) groups.push(`<section class="lookup-group"><h3>Procedures</h3><p class="small">Live field answers: what just happened and what do I do now?</p>${procedures.map(p=>lookupCard('Procedure',p.title,p.meaning||p.summary,`data-lookup-procedure="${esc(p.id)}"`)).join('')}</section>`);
   if(guide.length) groups.push(`<section class="lookup-group"><h3>Guide</h3><p class="small">Training and checklist material.</p>${guide.map(p=>lookupCard('Guide',p.title,p.summary,`data-lookup-guide="${esc(p.id)}"`)).join('')}</section>`);
-  if(tech.length) groups.push(`<section class="lookup-group"><h3>Master/Tech Reference</h3><p class="small">Technical reference material kept separate from poll-worker procedures.</p>${tech.map(t=>lookupCard('Master/Tech Reference',t.title,t.summary,`data-lookup-tech="${esc(t.id)}"`)).join('')}</section>`);
-  return `${pageHeading('Quick Lookup','Search once, then jump directly to the correct layer.')}
-    <input id="lookupInput" class="search-box" placeholder="Search affirm, moved, voter not found, printer, router…" value="${esc(state.lookupQuery||'')}">
+  return `${pageHeading('Quick Lookup','Search once, then jump directly to the correct Guide or Procedure.')}
+    <input id="lookupInput" class="search-box" placeholder="Search affirm, moved, voter not found, reprint, spoil…" value="${esc(state.lookupQuery||'')}">
     <div style="height:12px"></div>
-    ${techTarget?lookupTechDetail(techTarget):!q?'<div class="card empty">Type the situation or equipment problem you are looking for.</div>':groups.length?groups.join(''):'<div class="card empty">No matching Guide, Procedure, or Master/Tech reference.</div>'}`;
+    ${!q?'<div class="card empty">Type the voter situation or procedure you are looking for.</div>':groups.length?groups.join(''):'<div class="card empty">No matching Guide or Procedure.</div>'}`;
 };
 
 function openProcedureFromLookup(id){
@@ -38,32 +32,90 @@ function openProcedureFromLookup(id){
   if(!item) return;
   state.route='procedures';
   state.procedureCategory=item.category;
-  state.lookupTechTarget=null;
   saveState(); render();
-  requestAnimationFrame(()=>{
-    const target=document.getElementById(`field-${id}`);
-    target?.scrollIntoView({block:'start',behavior:'auto'});
-  });
+  requestAnimationFrame(()=>document.getElementById(`field-${id}`)?.scrollIntoView({block:'start',behavior:'auto'}));
 }
 function openGuideFromLookup(id){
   state.route='guide';
-  state.lookupTechTarget=null;
   saveState(); render();
   requestAnimationFrame(()=>{
     const target=document.querySelector(`[data-procedure="${CSS.escape(id)}"]`);
     if(!target) return;
-    if(target.classList.contains('procedure-card') && !target.classList.contains('teaching-procedure')) target.classList.add('expanded');
+    if(target.classList.contains('procedure-card')&&!target.classList.contains('teaching-procedure')) target.classList.add('expanded');
     target.scrollIntoView({block:'start',behavior:'auto'});
   });
 }
 
-const reconciliationBaseBindDynamic = bindDynamic;
-bindDynamic = function(){
+/* Rich Training Tracker restoration. */
+const TRACKER_STATUS_CHOICES=[['covered','Covered'],['live','Demonstrated Live'],['review','Needs Review'],['notReached','Not Reached']];
+const TRACKER_GROUPS=[
+  {title:'Opening & Readiness',topics:['Opening and worker orientation','Numbered station setup']},
+  {title:'Standard Voter Check-In',topics:['Activation-card preload','Standard voter check-in']},
+  {title:'Flags & Exceptions',topics:['Mail-In Ballot','Already Voted','Early Voted','Voter Not Found','ID Required']},
+  {title:'Ballot & Recovery Procedures',topics:['Provisional ballots','Reprint','Spoil']},
+  {title:'Floor Operations',topics:['Crowd flow','Who to call before improvising']}
+];
+function trackerTopicIndex(name){return data.trainingTopics.indexOf(name);}
+function trackerIsComplete(status){return status==='covered'||status==='live';}
+function trackerTopicState(i){return state.training[i]||{};}
+function trackerGroupStats(group){
+  const indexes=group.topics.map(trackerTopicIndex).filter(i=>i>=0);
+  return {indexes,total:indexes.length,complete:indexes.filter(i=>trackerIsComplete(trackerTopicState(i).status)).length};
+}
+function trackerAllStats(){
+  const total=data.trainingTopics.length;
+  return {
+    total,
+    complete:data.trainingTopics.filter((_,i)=>trackerIsComplete(trackerTopicState(i).status)).length,
+    covered:data.trainingTopics.filter((_,i)=>trackerTopicState(i).status==='covered').length,
+    live:data.trainingTopics.filter((_,i)=>trackerTopicState(i).status==='live').length,
+    review:data.trainingTopics.filter((_,i)=>trackerTopicState(i).status==='review').length,
+    notReached:data.trainingTopics.filter((_,i)=>trackerTopicState(i).status==='notReached').length
+  };
+}
+function trackerPill(done,total){return done===total&&total>0?'<span class="tracker-pill complete">★ Complete</span>':`<span class="tracker-pill">★ ${done} of ${total}</span>`;}
+function trackerTopicCard(i){
+  const topic=data.trainingTopics[i], item=trackerTopicState(i);
+  const statusLabel=TRACKER_STATUS_CHOICES.find(x=>x[0]===item.status)?.[1]||'Not yet marked';
+  return `<div class="training-topic-row ${trackerIsComplete(item.status)?'complete':''}">
+    <div class="training-topic-copy"><strong>${esc(topic)}</strong><small>${esc(statusLabel)}</small></div>
+    <div class="training-card" data-topic="${i}">
+      <div class="status-grid tracker-status-grid">${TRACKER_STATUS_CHOICES.map(([k,l])=>`<button class="status-button ${item.status===k?'active':''}" data-status="${k}">${l}</button>`).join('')}</div>
+      <textarea class="note-field" data-topic-note="${i}" placeholder="Optional training note">${esc(item.note||'')}</textarea>
+    </div>
+  </div>`;
+}
+renderTraining=function(){
+  title.textContent='Training Tracker';
+  const totals=trackerAllStats();
+  const pct=totals.total?Math.round((totals.complete/totals.total)*100):0;
+  return `${pageHeading('Training Tracker',`${modeLabel()} • progress stays on this device until the active session is reset.`)}
+    <section class="card tracker-overview">
+      <div class="tracker-overview-head"><div><p class="section-label">Session progress</p><h3>${totals.complete} of ${totals.total} topics complete</h3></div>${trackerPill(totals.complete,totals.total)}</div>
+      <div class="tracker-progress"><span style="width:${pct}%"></span></div>
+      <div class="tracker-summary-line"><span>${pct}% complete</span><span>${totals.review} need review</span><span>${totals.notReached} not reached</span></div>
+    </section>
+    <section class="card tracker-workers"><label><strong>Workers present</strong></label><input id="workersPresent" class="search-box" value="${esc(state.workersPresent)}" placeholder="Names or count"></section>
+    ${TRACKER_GROUPS.map(group=>{const g=trackerGroupStats(group);return `<section class="card tracker-section ${g.complete===g.total&&g.total?'complete':''}"><div class="tracker-section-head"><h3>${esc(group.title)}</h3>${trackerPill(g.complete,g.total)}</div><div class="tracker-topic-list">${g.indexes.map(trackerTopicCard).join('')}</div></section>`;}).join('')}`;
+};
+calculateReport=function(){const t=trackerAllStats();return {planned:t.total,covered:t.covered,live:t.live,complete:t.complete,review:t.review,notReached:t.notReached};};
+renderReport=function(){
+  title.textContent='Daily Report';
+  const r=calculateReport();
+  const priorities=data.trainingTopics.filter((_,i)=>['review','notReached'].includes(state.training[i]?.status));
+  const pct=r.planned?Math.round((r.complete/r.planned)*100):0;
+  return `${pageHeading('Session Summary',`${state.reportDate} • ${modeLabel()}`)}
+    <section class="card tracker-overview report-overview"><div class="tracker-overview-head"><div><p class="section-label">Training completion</p><h3>${r.complete} of ${r.planned} topics complete</h3></div>${trackerPill(r.complete,r.planned)}</div><div class="tracker-progress"><span style="width:${pct}%"></span></div><div class="report-stat"><span>Covered</span><strong>${r.covered}</strong></div><div class="report-stat"><span>Demonstrated live</span><strong>${r.live}</strong></div><div class="report-stat"><span>Needs review</span><strong>${r.review}</strong></div><div class="report-stat"><span>Not reached</span><strong>${r.notReached}</strong></div></section>
+    <section class="card"><h3>Carry-forward priorities</h3>${priorities.length?`<ul>${priorities.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="small">No topics are currently marked Needs Review or Not Reached.</p>'}</section>
+    <section class="card"><h3>General daily notes</h3><textarea id="dailyNotes" placeholder="Board questions, repeated trouble areas, or follow-up">${esc(state.dailyNotes)}</textarea></section>
+    <div class="controls"><button id="finishDay" class="primary">Save Session</button><button id="startTomorrow" class="secondary">Start Next Day</button></div>
+    <section class="card"><h3>Saved session history</h3>${state.history.length?state.history.slice().reverse().map(h=>`<div class="history-row"><strong>${esc(h.date)}</strong><span>${esc(h.mode==='early'?'Early Voting':'Election Day')}</span></div>`).join(''):'<p class="small">No saved sessions yet.</p>'}</section>`;
+};
+
+const reconciliationBaseBindDynamic=bindDynamic;
+bindDynamic=function(){
   reconciliationBaseBindDynamic();
   document.querySelectorAll('[data-lookup-procedure]').forEach(b=>b.onclick=()=>openProcedureFromLookup(b.dataset.lookupProcedure));
   document.querySelectorAll('[data-lookup-guide]').forEach(b=>b.onclick=()=>openGuideFromLookup(b.dataset.lookupGuide));
-  document.querySelectorAll('[data-lookup-tech]').forEach(b=>b.onclick=()=>{state.lookupTechTarget=b.dataset.lookupTech;saveState();render();window.scrollTo(0,0);});
-  document.querySelectorAll('[data-close-tech]').forEach(b=>b.onclick=()=>{state.lookupTechTarget=null;saveState();render();});
 };
-
 render();
