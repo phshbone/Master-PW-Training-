@@ -4,5 +4,6 @@
 .brand-copy{min-width:0}
 .brand-copy .eyebrow{font-size:.72rem;letter-spacing:.18em;opacity:.86;white-space:nowrap}
 .brand-copy h1{font-size:1.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lookup-group{margin:18px 0 24px}.lookup-group>h3{font-family:"Arial Narrow",Impact,sans-serif;color:var(--navy);font-size:1.3rem;margin:0 0 2px}.lookup-result-card{width:100%;text-align:left;display:block;padding:15px 16px}.lookup-result-card strong{display:block;color:var(--navy);font-size:1.05rem;margin:5px 0 6px}.lookup-result-card>span:last-child{display:block;color:var(--muted);line-height:1.4}.lookup-layer{display:inline-block;font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:#edf4fb;border-radius:999px;padding:4px 8px}.lookup-tech-detail h3{font-family:"Arial Narrow",Impact,sans-serif;color:var(--navy);font-size:1.35rem;margin:8px 0}.lookup-tech-detail .source-panel{margin-top:14px}
 @media (min-width:560px){.brand-logo{width:54px;height:54px}.brand-copy h1{font-size:1.55rem}}
 @media (max-width:390px){.topbar{gap:10px}.brand-logo{width:44px;height:44px}.brand-copy .eyebrow{font-size:.62rem}.brand-copy h1{font-size:1.15rem}.icon-button{min-width:42px}}
