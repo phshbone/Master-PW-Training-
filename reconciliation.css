@@ -1,0 +1,8 @@
+/* Reconciliation demo: restore screenshot-era MPW visual identity without disturbing existing feature code. */
+.brand-lockup{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-logo{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:0 0 auto;border:1px solid rgba(255,255,255,.9)}
+.brand-copy{min-width:0}
+.brand-copy .eyebrow{font-size:.72rem;letter-spacing:.18em;opacity:.86;white-space:nowrap}
+.brand-copy h1{font-size:1.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:560px){.brand-logo{width:54px;height:54px}.brand-copy h1{font-size:1.55rem}}
+@media (max-width:390px){.topbar{gap:10px}.brand-logo{width:44px;height:44px}.brand-copy .eyebrow{font-size:.62rem}.brand-copy h1{font-size:1.15rem}.icon-button{min-width:42px}}
