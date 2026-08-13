@@ -118,4 +118,47 @@ bindDynamic=function(){
   document.querySelectorAll('[data-lookup-procedure]').forEach(b=>b.onclick=()=>openProcedureFromLookup(b.dataset.lookupProcedure));
   document.querySelectorAll('[data-lookup-guide]').forEach(b=>b.onclick=()=>openGuideFromLookup(b.dataset.lookupGuide));
 };
+
+/* Screenshot-era Guide restoration. */
+function guideStepCount(p){return p.type==='teaching'?(p.lessons?.length||0):(p.steps?.length||0);}
+function guideDoneCount(p){
+  if(p.type==='teaching')return (p.lessons||[]).filter(lesson=>['explained','live'].includes(state.lessonStatus[`${p.id}:${lesson.id}`]?.status)).length;
+  const progress=state.procedureProgress[p.id]||{};
+  return (p.steps||[]).filter((_,i)=>!!progress[i]).length;
+}
+function guideProgressPill(p){const total=guideStepCount(p),done=guideDoneCount(p),complete=total>0&&done===total;return `<span class="guide-progress-pill ${complete?'complete':''}">★ ${complete?'Complete':`${done} of ${total}`}</span>`;}
+function guideHeading(p){return `<div class="guide-section-head"><div><h3>${esc(p.title)}</h3><p class="summary">${esc(p.summary)}</p></div>${guideProgressPill(p)}</div>${badges(p.badges)}`;}
+
+teachingProcedureMarkup=function(p){
+  const total=guideStepCount(p),done=guideDoneCount(p),complete=total>0&&done===total;
+  return `<section class="card procedure-card teaching-procedure guide-section-card ${complete?'complete':''}" data-procedure="${p.id}">${guideHeading(p)}<div class="lesson-stack">${p.lessons.map((lesson,index)=>{
+    const key=`${p.id}:${lesson.id}`,open=state.openLesson===key,status=state.lessonStatus[key]?.status||'',lessonComplete=['explained','live'].includes(status),actionProgress=state.procedureProgress[key]||{};
+    return `<article class="lesson-card ${open?'active':''} ${lessonComplete?'complete':''}" data-lesson-card="${key}"><button class="lesson-toggle" data-open-lesson="${key}" aria-expanded="${open}"><span class="lesson-number">${lessonComplete?'✓':index+1}</span><span class="lesson-title-wrap"><strong>${esc(lesson.title)}</strong><small>${esc(lesson.lead)}</small></span><span class="chevron">⌄</span></button><div class="lesson-detail">${infoBlock('Official Procedure','official',lesson.official)}${infoBlock('Why It Matters','why',lesson.why)}${infoBlock('Master Poll Worker Tip','tip',lesson.tips)}${infoBlock('Common Mistake','mistake',lesson.mistakes)}${lesson.actions?.length?`<section class="teaching-block actions"><h5>Action Checks</h5><div class="step-list">${lesson.actions.map((a,i)=>`<div class="step-item ${actionProgress[i]?'checked':''}"><input type="checkbox" id="${p.id}-${lesson.id}-${i}" data-action-check="${key}" data-index="${i}" ${actionProgress[i]?'checked':''}><label for="${p.id}-${lesson.id}-${i}">${esc(a)}</label></div>`).join('')}</div></section>`:''}${lessonStatusControls(p.id,lesson)}</div></article>`;
+  }).join('')}</div></section>`;
+};
+standardProcedureMarkup=function(p,expanded=false){
+  const progress=state.procedureProgress[p.id]||{},total=guideStepCount(p),done=guideDoneCount(p),complete=total>0&&done===total;
+  return `<section class="card procedure-card guide-section-card ${expanded?'expanded':''} ${complete?'complete':''}" data-procedure="${p.id}"><button class="procedure-toggle guide-section-toggle" aria-expanded="${expanded}">${guideHeading(p)}<span class="open-hint">${expanded?'Hide topics':'Show topics'}</span></button><div class="procedure-detail">${p.warning?`<div class="warning-box">${esc(p.warning)}</div>`:''}<div class="step-list">${p.steps.map((s,i)=>`<div class="step-item ${progress[i]?'checked':''}"><input type="checkbox" id="${p.id}-${i}" data-check="${p.id}" data-index="${i}" ${progress[i]?'checked':''}><label for="${p.id}-${i}">${esc(s)}</label></div>`).join('')}</div></div></section>`;
+};
+renderGuide=function(){
+  title.textContent='Trainer Checklist';
+  const procedures=filteredProcedures();
+  const totals=procedures.reduce((a,p)=>{a.total+=guideStepCount(p);a.done+=guideDoneCount(p);return a;},{done:0,total:0});
+  const sectionsDone=procedures.filter(p=>guideStepCount(p)>0&&guideDoneCount(p)===guideStepCount(p)).length;
+  const pct=totals.total?Math.round((totals.done/totals.total)*100):0;
+  return `${pageHeading('Trainer Checklist',`${modeLabel()} • progress stays on this device until the session is reset.`)}<section class="card guide-overview"><div class="guide-overview-head"><div><p class="section-label">Session progress</p><h3>${totals.done} of ${totals.total} topics complete</h3></div><span class="guide-progress-pill">★ ${sectionsDone} of ${procedures.length} sections</span></div><div class="guide-progress-bar"><span style="width:${pct}%"></span></div></section>${procedures.map((p,i)=>procedureMarkup(p,p.id==='checkin'||i===0)).join('')}`;
+};
+
+const guideBaseBindDynamic=bindDynamic;
+bindDynamic=function(){
+  guideBaseBindDynamic();
+  document.querySelectorAll('[data-open-lesson]').forEach(button=>button.onclick=()=>{
+    const key=button.dataset.openLesson,card=button.closest('[data-lesson-card]'),beforeTop=card?.getBoundingClientRect().top||0;
+    state.openLesson=state.openLesson===key?null:key;saveState();render();
+    requestAnimationFrame(()=>{const after=document.querySelector(`[data-lesson-card="${CSS.escape(key)}"]`);if(!after)return;const delta=after.getBoundingClientRect().top-beforeTop;if(Math.abs(delta)>1)window.scrollBy(0,delta);});
+  });
+  document.querySelectorAll('.guide-section-toggle').forEach(button=>button.onclick=()=>{const card=button.closest('.procedure-card');card.classList.toggle('expanded');const open=card.classList.contains('expanded');button.setAttribute('aria-expanded',String(open));const hint=button.querySelector('.open-hint');if(hint)hint.textContent=open?'Hide topics':'Show topics';});
+  document.querySelectorAll('[data-check]').forEach(c=>c.onchange=()=>{const id=c.dataset.check;state.procedureProgress[id]||={};state.procedureProgress[id][c.dataset.index]=c.checked;saveState();render();});
+  document.querySelectorAll('[data-action-check]').forEach(c=>c.onchange=()=>{const id=c.dataset.actionCheck;state.procedureProgress[id]||={};state.procedureProgress[id][c.dataset.index]=c.checked;saveState();render();});
+};
 render();
