@@ -1,8 +1,20 @@
-const CACHE='mpwg-0-4-clean';
+const CACHE='mpwg-reconciliation-2026-08-13';
 const STATIC_ASSETS=[
+  './',
+  './index.html',
   './styles.css',
+  './reconciliation.css',
+  './procedure-styles.css',
   './data.js',
   './app.js',
+  './lookup-enhancements.js',
+  './procedures-reconciliation.js',
+  './correction-record-update.js',
+  './source-reconciliation.js',
+  './master-reference.js',
+  './master-pin.js',
+  './important-dates.js',
+  './home-report-reconciliation.js',
   './manifest.webmanifest',
   './assets/icon-192.png',
   './assets/icon-512.png'
@@ -26,9 +38,6 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   const request=event.request;
-
-  // Always try the network first for page navigation so a previous app shell
-  // cannot keep masking a newly deployed version.
   if(request.mode==='navigate'){
     event.respondWith(
       fetch(request)
@@ -41,8 +50,6 @@ self.addEventListener('fetch',event=>{
     );
     return;
   }
-
-  // Static assets remain cache-first for fast/offline use.
   event.respondWith(
     caches.match(request).then(cached=>{
       if(cached) return cached;
