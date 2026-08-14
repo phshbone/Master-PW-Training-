@@ -1,10 +1,11 @@
-const CACHE='mpwg-reconciliation-2026-08-13-b';
+const CACHE='mpwg-reconciliation-2026-08-13-c';
 const STATIC_ASSETS=[
   './',
   './index.html',
   './styles.css',
   './reconciliation.css',
   './procedure-styles.css',
+  './mobile-qa.css',
   './data.js',
   './app.js',
   './lookup-enhancements.js',
