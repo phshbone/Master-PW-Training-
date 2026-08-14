@@ -1,4 +1,4 @@
-const CACHE='mpwg-reconciliation-2026-08-13';
+const CACHE='mpwg-reconciliation-2026-08-13-b';
 const STATIC_ASSETS=[
   './',
   './index.html',
@@ -15,6 +15,7 @@ const STATIC_ASSETS=[
   './master-pin.js',
   './important-dates.js',
   './home-report-reconciliation.js',
+  './qa-fixes.js',
   './manifest.webmanifest',
   './assets/icon-192.png',
   './assets/icon-512.png'
