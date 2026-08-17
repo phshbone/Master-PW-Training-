@@ -99,7 +99,10 @@
 
   sideMenu.addEventListener('close',()=>{ if(Store.select(s=>s.app.menuOpen)) Store.dispatch({type:'app/menu',open:false}); });
   searchDialog.addEventListener('close',()=>{ if(Store.select(s=>s.app.searchOpen)) Store.dispatch({type:'app/search',open:false}); });
-  Store.subscribe(render);
+  Store.subscribe((_, action)=>{
+    const textOnly = action.type==='mpw/briefing' || action.type==='training/workers' || action.type==='training/notes' || (action.type==='training/topic' && action.patch && Object.keys(action.patch).length===1 && Object.prototype.hasOwnProperty.call(action.patch,'note'));
+    if (!textOnly) render();
+  });
   Lifecycle.init(); PWA.init(); render();
 
   window.MPWApp = { render, routeMap };
