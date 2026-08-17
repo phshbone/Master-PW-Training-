@@ -50,6 +50,9 @@
     if (el.dataset.route && !el.closest('.search-result')) { Router.go(el.dataset.route); return; }
     if (el.dataset.category) { Store.dispatch({type:'procedures/category',id:el.dataset.category}); return; }
     if (el.hasAttribute('data-clear-procedure')) { Store.dispatch({type:'app/route',route:'procedures',params:{}}); return; }
+    if (el.hasAttribute('data-clear-routine')) { Store.dispatch({type:'app/route',route:'routines',params:{}}); return; }
+    if (el.hasAttribute('data-clear-reference')) { Store.dispatch({type:'app/route',route:'references',params:{}}); return; }
+    if (el.hasAttribute('data-clear-mpw')) { Store.dispatch({type:'app/route',route:'mpw',params:{}}); return; }
     if (el.dataset.guideOpen) { const s=Store.getState(); Store.dispatch({type:'guide/open',id:s.guide.open===el.dataset.guideOpen?null:el.dataset.guideOpen}); return; }
     if (el.dataset.guideStatus) { Store.dispatch({type:'guide/status',key:el.dataset.guideStatus,value:el.dataset.value}); return; }
     if (el.dataset.trainingStatus) { Store.dispatch({type:'training/topic',id:el.dataset.trainingStatus,patch:{status:el.dataset.value}}); return; }
@@ -59,12 +62,18 @@
       const routine=window.MPW_CONTENT.routines.find(r=>r.id===id); if (routine) routine.phases.forEach(p=>Store.dispatch({type:'routines/phase',key:`${id}:${p.id}`,value:open})); return;
     }
     if (el.dataset.boardToggle) { Store.dispatch({type:'board/toggle',id:el.dataset.boardToggle}); return; }
-    if (el.dataset.boardRemove) { Store.dispatch({type:'board/remove',id:el.dataset.boardRemove}); return; }
+    if (el.dataset.boardRemove) { if (confirm('Remove this Board question?')) Store.dispatch({type:'board/remove',id:el.dataset.boardRemove}); return; }
     if (el.matches('#finishDay')) {
-      const s=Store.getState(), vals=Object.values(s.training.topics), complete=vals.filter(v=>v.status==='covered'||v.status==='live').length;
+      const s=Store.getState();
+      if (s.training.history.some(h=>h.date===s.training.reportDate)) { alert('This date is already saved in history.'); return; }
+      const vals=Object.values(s.training.topics), complete=vals.filter(v=>v.status==='covered'||v.status==='live').length;
       Store.dispatch({type:'training/finish',snapshot:{date:s.training.reportDate,summary:`${complete}/${window.MPW_CONTENT.trainingTopics.length} topics covered/live`,notes:s.training.dailyNotes}}); return;
     }
-    if (el.matches('#startTomorrow')) { const d=new Date(); d.setDate(d.getDate()+1); Store.dispatch({type:'training/newDay',date:d.toISOString().slice(0,10)}); return; }
+    if (el.matches('#startTomorrow')) {
+      const s=Store.getState();
+      const d=new Date(`${s.training.reportDate}T12:00:00`); d.setDate(d.getDate()+1);
+      Store.dispatch({type:'training/newDay',date:d.toISOString().slice(0,10)}); return;
+    }
     if (el.matches('#exportBackup')) {
       const blob=new Blob([Storage.export(Store.getState())],{type:'application/json'}),a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`mpw-backup-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); return;
     }
@@ -74,8 +83,7 @@
 
   document.addEventListener('change', e => {
     const el=e.target;
-    if (el.dataset.guideCheck) Store.dispatch({type:'guide/check',key:el.dataset.guideCheck,value:el.checked});
-    else if (el.dataset.procCheck) Store.dispatch({type:'procedures/check',key:el.dataset.procCheck,value:el.checked});
+    if (el.dataset.procCheck) Store.dispatch({type:'procedures/check',key:el.dataset.procCheck,value:el.checked});
     else if (el.dataset.routineCheck) Store.dispatch({type:'routines/check',key:el.dataset.routineCheck,value:el.checked});
     else if (el.matches('#compactToggle')) Store.dispatch({type:'settings/compact',value:el.checked});
     else if (el.matches('#importBackup')) {
