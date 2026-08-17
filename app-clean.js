@@ -11,6 +11,29 @@
   const routeMap = {};
   Registry.list().forEach(mod => (mod.routes||[]).forEach(r => routeMap[r] = mod));
 
+  const historyStack = [];
+  const sameParams = (a,b) => JSON.stringify(a||{}) === JSON.stringify(b||{});
+  const captureLocation = () => {
+    const s=Store.getState();
+    return { route:s.app.route, params:s.app.params||{}, scrollTop:main.scrollTop, guideOpen:s.guide.open||null };
+  };
+  const goWithHistory = (route, params={}) => {
+    const s=Store.getState();
+    if (s.app.route===route && sameParams(s.app.params,params)) return;
+    historyStack.push(captureLocation());
+    Router.go(route,params);
+  };
+  const goBack = () => {
+    const previous=historyStack.pop();
+    if (!previous) return false;
+    Store.dispatch({type:'app/route',route:previous.route,params:previous.params||{}});
+    if (previous.route==='guide' && Store.select(s=>s.guide.open)!==previous.guideOpen) {
+      Store.dispatch({type:'guide/open',id:previous.guideOpen});
+    }
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ main.scrollTop=previous.scrollTop||0; updateBackToTop(); }));
+    return true;
+  };
+
   function renderSearch() {
     const s=Store.getState();
     if (!s.app.searchOpen) { if(searchDialog.open) searchDialog.close(); return; }
@@ -25,6 +48,25 @@
     input.oninput=run; run(); setTimeout(()=>input.focus(),0);
   }
 
+  function neutralizeSourceLinks(){
+    main.querySelectorAll('.source-footer a').forEach(a=>{
+      const span=document.createElement('span');
+      span.className='source-pending';
+      span.textContent=a.textContent.replace(/\s*↗\s*$/,'');
+      span.title='Exact protected PDF/page source will be connected when the manual library is installed.';
+      a.replaceWith(span);
+    });
+  }
+
+  function decorateNavigation(){
+    main.querySelectorAll('[data-history-back]').forEach(x=>x.remove());
+    if(historyStack.length && Store.select(s=>s.app.route)!=='home'){
+      main.insertAdjacentHTML('afterbegin','<button class="history-back" data-history-back aria-label="Back to previous screen">← Back</button>');
+    }
+    const clear=main.querySelector('[data-clear-procedure]');
+    if(clear && historyStack.length) clear.textContent='← Back to previous screen';
+  }
+
   function render(options={}) {
     const preserve=!!options.preserveScroll;
     const previousTop=preserve?main.scrollTop:0;
@@ -36,6 +78,8 @@
     const mod=routeMap[s.app.route] || routeMap.home;
     title.textContent = window.MPW_CONTENT.app.title;
     main.innerHTML = mod.render(s.app.route);
+    neutralizeSourceLinks();
+    decorateNavigation();
     if(preserve) main.scrollTop=previousTop; else main.scrollTop=0;
     if (s.app.menuOpen && !sideMenu.open) sideMenu.showModal();
     if (!s.app.menuOpen && sideMenu.open) sideMenu.close();
@@ -50,22 +94,23 @@
 
   document.addEventListener('click', e => {
     const el=e.target.closest('button,a,label'); if (!el) return;
+    if (el.matches('[data-history-back]')) { goBack(); return; }
     if (el.matches('#backToTop')) { main.scrollTo({top:0,behavior:'smooth'}); return; }
     if (el.matches('#menuButton')) { Store.dispatch({type:'app/menu',open:true}); return; }
     if (el.matches('#closeMenu')) { Store.dispatch({type:'app/menu',open:false}); return; }
     if (el.matches('[data-open-search]')) { Store.dispatch({type:'app/menu',open:false}); Store.dispatch({type:'app/search',open:true}); return; }
     if (el.matches('#closeSearch')) { Store.dispatch({type:'app/search',open:false}); return; }
-    if (el.dataset.mode) { Router.setMode(el.dataset.mode); return; }
-    if (el.dataset.go) { Router.go(el.dataset.go); return; }
-    if (el.dataset.route && !el.closest('.search-result')) { Router.go(el.dataset.route); return; }
-    if (el.dataset.openProcedure) { Router.go('procedures',{id:el.dataset.openProcedure}); return; }
+    if (el.dataset.mode) { Router.setMode(el.dataset.mode); historyStack.length=0; return; }
+    if (el.dataset.go) { goWithHistory(el.dataset.go); return; }
+    if (el.dataset.route && !el.closest('.search-result')) { Store.dispatch({type:'app/menu',open:false}); goWithHistory(el.dataset.route); return; }
+    if (el.dataset.openProcedure) { goWithHistory('procedures',{id:el.dataset.openProcedure}); return; }
     if (el.dataset.procedureJump) {
       const target=el.dataset.procedureJump==='topics'?'procedure-topics':`procedure-category-${el.dataset.procedureJump}`;
       main.querySelector(`#${target}`)?.scrollIntoView({behavior:'smooth',block:'start'});
       return;
     }
     if (el.dataset.category) { Store.dispatch({type:'procedures/category',id:el.dataset.category}); return; }
-    if (el.hasAttribute('data-clear-procedure')) { Store.dispatch({type:'app/route',route:'procedures',params:{}}); return; }
+    if (el.hasAttribute('data-clear-procedure')) { if(!goBack()) Store.dispatch({type:'app/route',route:'procedures',params:{}}); return; }
     if (el.hasAttribute('data-clear-routine')) { Store.dispatch({type:'app/route',route:'routines',params:{}}); return; }
     if (el.hasAttribute('data-clear-reference')) { Store.dispatch({type:'app/route',route:'references',params:{}}); return; }
     if (el.hasAttribute('data-clear-mpw')) { Store.dispatch({type:'app/route',route:'mpw',params:{}}); return; }
@@ -99,7 +144,13 @@
       const blob=new Blob([Storage.export(Store.getState())],{type:'application/json'}),a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`mpw-backup-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); return;
     }
     if (el.matches('#resetData')) { if (confirm('Reset all local progress, notes, questions, and settings?')) Store.dispatch({type:'system/replace',state:Storage.reset()}); return; }
-    const sr=el.closest('.search-result'); if (sr) { Store.dispatch({type:'app/search',open:false}); Router.go(sr.dataset.searchRoute,{id:sr.dataset.searchId}); if(sr.dataset.searchRoute==='guide') Store.dispatch({type:'guide/open',id:sr.dataset.searchId}); return; }
+    const sr=el.closest('.search-result'); if (sr) {
+      const target={route:sr.dataset.searchRoute,params:{id:sr.dataset.searchId}};
+      Store.dispatch({type:'app/search',open:false});
+      goWithHistory(target.route,target.params);
+      if(target.route==='guide') Store.dispatch({type:'guide/open',id:sr.dataset.searchId});
+      return;
+    }
   });
 
   document.addEventListener('change', e => {
@@ -109,7 +160,7 @@
     else if (el.matches('#compactToggle')) Store.dispatch({type:'settings/compact',value:el.checked});
     else if (el.matches('#importBackup')) {
       const file=el.files?.[0]; if (!file) return;
-      file.text().then(text=>{ try { Store.dispatch({type:'system/replace',state:Storage.import(text)}); alert('Backup restored.'); } catch(err){ alert(`Backup rejected: ${err.message}`); } });
+      file.text().then(text=>{ try { Store.dispatch({type:'system/replace',state:Storage.import(text)}); historyStack.length=0; alert('Backup restored.'); } catch(err){ alert(`Backup rejected: ${err.message}`); } });
     }
   });
 
@@ -126,6 +177,20 @@
     const input=document.getElementById('boardInput'),text=input.value.trim(); if(text) Store.dispatch({type:'board/add',text});
   });
 
+  let touchStart=null;
+  main.addEventListener('touchstart',e=>{
+    const t=e.changedTouches?.[0];
+    touchStart=t?{x:t.clientX,y:t.clientY,time:Date.now()}:null;
+  },{passive:true});
+  main.addEventListener('touchend',e=>{
+    if(!touchStart || !historyStack.length) return;
+    const t=e.changedTouches?.[0]; if(!t) return;
+    const dx=t.clientX-touchStart.x, dy=t.clientY-touchStart.y;
+    const edgeStart=touchStart.x<=40, quick=Date.now()-touchStart.time<700;
+    if(edgeStart && quick && dx>80 && Math.abs(dy)<55) goBack();
+    touchStart=null;
+  },{passive:true});
+
   main.addEventListener('scroll',updateBackToTop,{passive:true});
   sideMenu.addEventListener('close',()=>{ if(Store.select(s=>s.app.menuOpen)) Store.dispatch({type:'app/menu',open:false}); });
   searchDialog.addEventListener('close',()=>{ if(Store.select(s=>s.app.searchOpen)) Store.dispatch({type:'app/search',open:false}); });
@@ -138,5 +203,5 @@
   });
   Lifecycle.init(); PWA.init(); render();
 
-  window.MPWApp = { render, routeMap };
+  window.MPWApp = { render, routeMap, goBack, historyStack };
 })();
