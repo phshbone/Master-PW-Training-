@@ -28,7 +28,6 @@
   function render(options={}) {
     const preserve=!!options.preserveScroll;
     const previousTop=preserve?main.scrollTop:0;
-    const previousCategoryScroll=preserve?(main.querySelector('.category-grid')?.scrollLeft||0):0;
     const s=Store.getState();
     document.documentElement.dataset.mode=s.app.mode;
     document.body.classList.toggle('compact',!!s.settings.compactMode);
@@ -37,11 +36,7 @@
     const mod=routeMap[s.app.route] || routeMap.home;
     title.textContent = window.MPW_CONTENT.app.title;
     main.innerHTML = mod.render(s.app.route);
-    if(preserve){
-      main.scrollTop=previousTop;
-      const grid=main.querySelector('.category-grid');
-      if(grid) grid.scrollLeft=previousCategoryScroll;
-    } else main.scrollTop=0;
+    if(preserve) main.scrollTop=previousTop; else main.scrollTop=0;
     if (s.app.menuOpen && !sideMenu.open) sideMenu.showModal();
     if (!s.app.menuOpen && sideMenu.open) sideMenu.close();
     renderSearch();
@@ -63,6 +58,11 @@
     if (el.dataset.mode) { Router.setMode(el.dataset.mode); return; }
     if (el.dataset.go) { Router.go(el.dataset.go); return; }
     if (el.dataset.route && !el.closest('.search-result')) { Router.go(el.dataset.route); return; }
+    if (el.dataset.procedureJump) {
+      const target=el.dataset.procedureJump==='topics'?'procedure-topics':`procedure-category-${el.dataset.procedureJump}`;
+      main.querySelector(`#${target}`)?.scrollIntoView({behavior:'smooth',block:'start'});
+      return;
+    }
     if (el.dataset.category) { Store.dispatch({type:'procedures/category',id:el.dataset.category}); return; }
     if (el.hasAttribute('data-clear-procedure')) { Store.dispatch({type:'app/route',route:'procedures',params:{}}); return; }
     if (el.hasAttribute('data-clear-routine')) { Store.dispatch({type:'app/route',route:'routines',params:{}}); return; }
