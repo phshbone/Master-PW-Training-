@@ -58,6 +58,7 @@
     if (el.dataset.mode) { Router.setMode(el.dataset.mode); return; }
     if (el.dataset.go) { Router.go(el.dataset.go); return; }
     if (el.dataset.route && !el.closest('.search-result')) { Router.go(el.dataset.route); return; }
+    if (el.dataset.openProcedure) { Router.go('procedures',{id:el.dataset.openProcedure}); return; }
     if (el.dataset.procedureJump) {
       const target=el.dataset.procedureJump==='topics'?'procedure-topics':`procedure-category-${el.dataset.procedureJump}`;
       main.querySelector(`#${target}`)?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -68,7 +69,12 @@
     if (el.hasAttribute('data-clear-routine')) { Store.dispatch({type:'app/route',route:'routines',params:{}}); return; }
     if (el.hasAttribute('data-clear-reference')) { Store.dispatch({type:'app/route',route:'references',params:{}}); return; }
     if (el.hasAttribute('data-clear-mpw')) { Store.dispatch({type:'app/route',route:'mpw',params:{}}); return; }
-    if (el.dataset.guideOpen) { const s=Store.getState(); Store.dispatch({type:'guide/open',id:s.guide.open===el.dataset.guideOpen?null:el.dataset.guideOpen}); return; }
+    if (el.dataset.guideOpen) {
+      const s=Store.getState(), id=el.dataset.guideOpen, opening=s.guide.open!==id;
+      Store.dispatch({type:'guide/open',id:opening?id:null});
+      if(opening) requestAnimationFrame(()=>main.querySelector(`#guide-topic-${CSS.escape(id)}`)?.scrollIntoView({behavior:'smooth',block:'start'}));
+      return;
+    }
     if (el.dataset.guideStatus) { Store.dispatch({type:'guide/status',key:el.dataset.guideStatus,value:el.dataset.value}); return; }
     if (el.dataset.trainingStatus) { Store.dispatch({type:'training/topic',id:el.dataset.trainingStatus,patch:{status:el.dataset.value}}); return; }
     if (el.dataset.phase) { const s=Store.getState(); Store.dispatch({type:'routines/phase',key:el.dataset.phase,value:!s.routines.openPhases[el.dataset.phase]}); return; }
@@ -126,7 +132,7 @@
   Store.subscribe((_, action)=>{
     const textOnly = action.type==='mpw/briefing' || action.type==='training/workers' || action.type==='training/notes' || (action.type==='training/topic' && action.patch && Object.keys(action.patch).length===1 && Object.prototype.hasOwnProperty.call(action.patch,'note'));
     if (!textOnly) {
-      const preserve = !['app/route','app/mode','system/replace','training/newDay'].includes(action.type);
+      const preserve = !['app/route','app/mode','guide/open','system/replace','training/newDay'].includes(action.type);
       render({preserveScroll:preserve});
     }
   });
