@@ -9,9 +9,15 @@
   const sourceFooter = src => {
     const list = Array.isArray(src) ? src : src ? [src] : [];
     if (!list.length) return '';
-    return `<footer class="source-footer"><strong>Source:</strong>${list.map(x=>`<span>${esc(x.title)}${x.year?` · ${esc(x.year)}`:''}</span>`).join('<span class="dot">•</span>')}</footer>`;
+    return `<footer class="source-footer"><strong>Source:</strong>${list.map(x=>x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}${x.year?` · ${esc(x.year)}`:''} ↗</a>`:`<span>${esc(x.title)}${x.year?` · ${esc(x.year)}`:''}</span>`).join('<span class="dot">•</span>')}</footer>`;
   };
-  const warning = (text, critical=false) => text ? `<div class="warning ${critical?'critical':''}">${critical?'<strong>★ ★ CRITICAL ★ ★</strong> ':''}${esc(text)}</div>` : '';
+  const warningBody = text => {
+    let html=esc(text);
+    html=html.replace('Do not ask for ID','<strong>Do not ask for ID</strong>');
+    html=html.replace('Do not ask every voter for identification.','<strong>Do not ask every voter for identification.</strong>');
+    return html;
+  };
+  const warning = (text, critical=false) => text ? `<div class="warning ${critical?'critical':''}">${critical?'<strong>★ ★ CRITICAL ★ ★</strong> ':''}${warningBody(text)}</div>` : '';
   const heading = (title, sub='') => `<div class="page-heading"><h2>${esc(title)}</h2>${sub?`<p>${esc(sub)}</p>`:''}</div>`;
   const outcome = items => items?.length ? `<section class="field-section"><h4>Voting Outcome</h4><div class="outcome-box"><ul>${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></section>` : '';
   const cardList = (title, items) => `<section class="field-section"><h4>${esc(title)}</h4><ul>${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>`;
@@ -25,7 +31,7 @@
       const trained=Object.values(s.training.topics).filter(x=>x?.status==='covered'||x?.status==='live').length;
       return `${heading('Today’s Control Center',`${modeLabel(mode)} · ${s.training.reportDate}`)}
         <section class="card hero-card"><div><p class="section-label">Field-use rule</p><h3>Procedure First. Never Guess.</h3><p>Use <strong>Guide</strong> to teach the normal workflow. Use <strong>Procedures</strong> when a voter situation or equipment issue needs an immediate answer. Use the menu for Search and Master Poll Worker references.</p></div>${warning(C.escalation,true)}</section>
-        <section class="status-grid-home"><div class="stat card"><strong>${guideDone}/${guideTotal}</strong><span>Guide lessons</span></div><div class="stat card"><strong>${trained}/${C.trainingTopics.length}</strong><span>Training topics</span></div></section>
+        <section class="status-grid-home"><div class="stat card info-stat"><strong>${guideDone}/${guideTotal}</strong><span>Guide lessons</span></div><div class="stat card info-stat"><strong>${trained}/${C.trainingTopics.length}</strong><span>Training topics</span></div></section>
         <div class="quick-grid"><button class="quick card" data-go="guide"><strong>Guide</strong><span>Teach normal workflow</span></button><button class="quick card" data-go="procedures"><strong>Procedures</strong><span>Handle field situations</span></button><button class="quick card" data-go="routines"><strong>Opening / Closing</strong><span>Run the room in order</span></button><button class="quick card" data-go="training"><strong>Training</strong><span>Track today’s coverage</span></button></div>`;
     }
   };
@@ -37,9 +43,10 @@
       const topics=C.guideTopics.filter(visible);
       return `${heading('Trainer Checklist',`${modeLabel(s.app.mode)} · teach, demonstrate, verify`)}${topics.map(t=>{
         const open=s.guide.open===t.id || s.app.params?.id===t.id;
-        return `<article class="card guide-topic"><button class="card-toggle" data-guide-open="${esc(t.id)}" aria-expanded="${open}"><span><strong>${esc(t.title)}</strong><small>${esc(t.summary)}</small></span><span>⌄</span></button><div class="collapse ${open?'open':''}">${t.lessons.map((l,i)=>{
+        return `<article class="card guide-topic" id="guide-topic-${esc(t.id)}"><button class="card-toggle" data-guide-open="${esc(t.id)}" aria-expanded="${open}"><span><strong>${esc(t.title)}</strong><small>${esc(t.summary)}</small></span><span>⌄</span></button><div class="collapse ${open?'open':''}">${t.lessons.map((l,i)=>{
           const [id,title,steps]=l,key=`${t.id}:${id}`,statuses=Array.isArray(s.guide.lessonStatus[key])?s.guide.lessonStatus[key]:[];
-          return `<section class="lesson"><div class="lesson-head"><span class="step-num">${i+1}</span><h4>${esc(title)}</h4></div><ol>${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="section-label">Training status</p><div class="status-buttons">${[['explained','Explained'],['live','Demonstrated Live'],['review','Needs Review'],['notReached','Not Reached']].map(([v,lbl])=>`<button data-guide-status="${esc(key)}" data-value="${v}" class="${statuses.includes(v)?'active':''}">${lbl}</button>`).join('')}</div></section>`;
+          const related = key==='checkin:signature' ? '<button class="related-link" data-open-procedure="provisional">See Provisional Ballot →</button>' : '';
+          return `<section class="lesson"><div class="lesson-head"><span class="step-num">${i+1}</span><h4>${esc(title)}</h4></div><ol>${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>${related}<p class="section-label">Training status</p><div class="status-buttons">${[['explained','Explained'],['live','Demonstrated Live'],['review','Needs Review'],['notReached','Not Reached']].map(([v,lbl])=>`<button data-guide-status="${esc(key)}" data-value="${v}" class="status-${v} ${statuses.includes(v)?'active':''}">${lbl}</button>`).join('')}</div></section>`;
         }).join('')}</div></article>`;
       }).join('')}`;
     },
@@ -61,7 +68,11 @@
       const sections=grouped.map(g=>`<section class="procedure-category-section" id="procedure-category-${esc(g.id)}"><div class="procedure-category-heading"><h3>${esc(g.title)}</h3><button class="text-button compact-link" data-procedure-jump="topics">Back to topics ↑</button></div>${g.items.map(p=>this.card(p,s)).join('')}</section>`).join('');
       return `${heading('Field Procedures','Choose a topic for a fast jump, or scroll through the full field reference.')}<div id="procedure-topics" class="procedure-topic-grid">${topicCards}</div>${sections}`;
     },
-    card(p,s){const decision=p.decision?`<section class="field-section"><h4>Decision Point</h4><p><strong>${esc(p.decision.question)}</strong></p><div class="decision-grid"><div><strong>YES / PATH 1</strong><ul>${p.decision.yes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div><strong>NO / PATH 2</strong><ul>${p.decision.no.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div></section>`:'';return `<article class="card procedure-card" id="procedure-${esc(p.id)}"><div class="procedure-title"><h3>${esc(p.title)}</h3>${p.aliases?.length?`<span class="badge">${esc(p.category)}</span>`:''}</div><p class="summary">${esc(p.summary)}</p>${warning(p.critical,true)}${warning(p.warning,false)}${decision}<section class="field-section"><h4>What To Do</h4><ol>${p.steps.map((x,i)=>{const key=`${p.id}:${i}`,checked=!!s.procedures.progress[key];return `<li><label class="proc-step"><input type="checkbox" data-proc-check="${esc(key)}" ${checked?'checked':''}><span>${esc(x)}</span></label></li>`}).join('')}</ol></section>${p.notDo?cardList('What NOT To Do',p.notDo):''}${outcome(p.outcome)}${sourceFooter(p.source)}${p.aliases?.length?`<div class="alias-line">Aliases: ${p.aliases.map(esc).join(' · ')}</div>`:''}</article>`;},
+    card(p,s){
+      const decision=p.decision?`<section class="field-section"><h4>Decision Point</h4><p><strong>${esc(p.decision.question)}</strong></p><div class="decision-grid"><div><strong>YES / PATH 1</strong><ul>${p.decision.yes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div><strong>NO / PATH 2</strong><ul>${p.decision.no.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div></section>`:'';
+      const related = p.id==='affirm-address' ? '<button class="related-link" data-open-procedure="changed-residence">Changed Residence →</button>' : p.id==='no-signature' ? '<button class="related-link" data-open-procedure="provisional">Provisional Ballot →</button>' : '';
+      return `<article class="card procedure-card" id="procedure-${esc(p.id)}"><div class="procedure-title"><h3>${esc(p.title)}</h3>${p.aliases?.length?`<span class="badge badge-${esc(p.category)}">${esc(p.category)}</span>`:''}</div><p class="summary">${esc(p.summary)}</p>${warning(p.critical,true)}${warning(p.warning,false)}${decision}${related}<section class="field-section"><h4>What To Do</h4><ol>${p.steps.map((x,i)=>{const key=`${p.id}:${i}`,checked=!!s.procedures.progress[key];return `<li><label class="proc-step"><input type="checkbox" data-proc-check="${esc(key)}" ${checked?'checked':''}><span>${esc(x)}</span></label></li>`}).join('')}</ol></section>${p.notDo?cardList('What NOT To Do',p.notDo):''}${outcome(p.outcome)}${sourceFooter(p.source)}${p.aliases?.length?`<div class="alias-line">Aliases: ${p.aliases.map(esc).join(' · ')}</div>`:''}</article>`;
+    },
     searchDocuments(mode){return C.procedures.filter(x=>x.modes.includes(mode)).map(x=>({type:'procedure',id:x.id,title:x.title,aliases:x.aliases||[],category:x.category,body:[x.summary,...(x.steps||[]),...(x.outcome||[])].join(' '),route:'procedures'}));}
   };
 
