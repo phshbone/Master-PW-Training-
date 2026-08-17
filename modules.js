@@ -48,7 +48,19 @@
 
   const Procedures = {
     id:'procedures', routes:['procedures'],
-    render(){const s=Store.getState(),cats=C.procedureCategories,cat=s.procedures.category||cats[0][0];let items=C.procedures.filter(x=>x.category===cat&&visible(x));if(s.app.params?.id)items=C.procedures.filter(x=>x.id===s.app.params.id&&visible(x));return `${heading('Field Procedures','This just happened — what do I do?')}${s.app.params?.id?'<button class="text-button" data-clear-procedure>← Back to procedure categories</button>':`<div class="category-grid">${cats.map(([id,title])=>`<button class="category ${cat===id?'active':''}" data-category="${id}">${esc(title)}</button>`).join('')}</div>`}${items.length?items.map(p=>this.card(p,s)).join(''):'<div class="card empty">No procedure in this category for the selected mode.</div>'}`;},
+    render(){
+      const s=Store.getState();
+      if (s.app.params?.id) {
+        const items=C.procedures.filter(x=>x.id===s.app.params.id&&visible(x));
+        return `${heading('Field Procedures','This just happened — what do I do?')}<button class="text-button" data-clear-procedure>← Back to procedure topics</button>${items.length?items.map(p=>this.card(p,s)).join(''):'<div class="card empty">Procedure not available in the selected mode.</div>'}`;
+      }
+      const grouped=C.procedureCategories.map(([id,title])=>({id,title,items:C.procedures.filter(x=>x.category===id&&visible(x))})).filter(g=>g.items.length);
+      const order=['flags','primary','records','mail','provisional','reprint','assistance','unusual','equipment'];
+      grouped.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+      const topicCards=grouped.map(g=>`<button class="procedure-topic-card ${g.id==='equipment'?'wide':''}" data-procedure-jump="${esc(g.id)}"><strong>${esc(g.title)}</strong><span>${g.items.length} ${g.items.length===1?'procedure':'procedures'}</span></button>`).join('');
+      const sections=grouped.map(g=>`<section class="procedure-category-section" id="procedure-category-${esc(g.id)}"><div class="procedure-category-heading"><h3>${esc(g.title)}</h3><button class="text-button compact-link" data-procedure-jump="topics">Back to topics ↑</button></div>${g.items.map(p=>this.card(p,s)).join('')}</section>`).join('');
+      return `${heading('Field Procedures','Choose a topic for a fast jump, or scroll through the full field reference.')}<div id="procedure-topics" class="procedure-topic-grid">${topicCards}</div>${sections}`;
+    },
     card(p,s){const decision=p.decision?`<section class="field-section"><h4>Decision Point</h4><p><strong>${esc(p.decision.question)}</strong></p><div class="decision-grid"><div><strong>YES / PATH 1</strong><ul>${p.decision.yes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div><strong>NO / PATH 2</strong><ul>${p.decision.no.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div></section>`:'';return `<article class="card procedure-card" id="procedure-${esc(p.id)}"><div class="procedure-title"><h3>${esc(p.title)}</h3>${p.aliases?.length?`<span class="badge">${esc(p.category)}</span>`:''}</div><p class="summary">${esc(p.summary)}</p>${warning(p.critical,true)}${warning(p.warning,false)}${decision}<section class="field-section"><h4>What To Do</h4><ol>${p.steps.map((x,i)=>{const key=`${p.id}:${i}`,checked=!!s.procedures.progress[key];return `<li><label class="proc-step"><input type="checkbox" data-proc-check="${esc(key)}" ${checked?'checked':''}><span>${esc(x)}</span></label></li>`}).join('')}</ol></section>${p.notDo?cardList('What NOT To Do',p.notDo):''}${outcome(p.outcome)}${sourceFooter(p.source)}${p.aliases?.length?`<div class="alias-line">Aliases: ${p.aliases.map(esc).join(' · ')}</div>`:''}</article>`;},
     searchDocuments(mode){return C.procedures.filter(x=>x.modes.includes(mode)).map(x=>({type:'procedure',id:x.id,title:x.title,aliases:x.aliases||[],category:x.category,body:[x.summary,...(x.steps||[]),...(x.outcome||[])].join(' '),route:'procedures'}));}
   };
