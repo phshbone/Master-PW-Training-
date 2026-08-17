@@ -1,0 +1,1 @@
+.brand-wrap{display:flex;align-items:center;gap:10px;min-width:0}.brand-logo{width:46px;height:46px;flex:0 0 46px;border-radius:11px;object-fit:cover;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18)}.brand-copy{min-width:0}@media(max-width:360px){.brand-logo{width:42px;height:42px;flex-basis:42px}.topbar h1{font-size:1rem}}
