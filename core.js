@@ -19,6 +19,16 @@
     settings: { compactMode: false }
   };
 
+  const normalizeGuideStatuses = obj => {
+    const out = {};
+    if (!obj || typeof obj !== 'object') return out;
+    Object.entries(obj).forEach(([key,value])=>{
+      if (Array.isArray(value)) out[key] = [...new Set(value.filter(Boolean))];
+      else if (typeof value === 'string' && value) out[key] = [value];
+    });
+    return out;
+  };
+
   const normalize = raw => {
     const next = deepClone(DEFAULT_STATE);
     if (!raw || typeof raw !== 'object') return next;
@@ -26,6 +36,7 @@
     for (const key of ['app','guide','procedures','routines','mpw','board','training','settings']) {
       if (raw[key] && typeof raw[key] === 'object') Object.assign(next[key], raw[key]);
     }
+    next.guide.lessonStatus = normalizeGuideStatuses(next.guide.lessonStatus);
     if (!['early','election'].includes(next.app.mode)) next.app.mode = 'early';
     if (!next.training.reportDate) next.training.reportDate = new Date().toISOString().slice(0,10);
     if (!Array.isArray(next.board.questions)) next.board.questions = [];
@@ -99,7 +110,18 @@
         case 'app/search': state.app.searchOpen = !!action.open; break;
         case 'guide/open': state.guide.open = action.id || null; break;
         case 'guide/check': state.guide.progress[action.key] = !!action.value; break;
-        case 'guide/status': state.guide.lessonStatus[action.key] = action.value || ''; break;
+        case 'guide/status': {
+          const current = Array.isArray(state.guide.lessonStatus[action.key]) ? state.guide.lessonStatus[action.key] : [];
+          const value = action.value;
+          if (value === 'notReached') {
+            state.guide.lessonStatus[action.key] = current.includes('notReached') ? [] : ['notReached'];
+          } else {
+            let next = current.filter(v => v !== 'notReached');
+            next = next.includes(value) ? next.filter(v => v !== value) : [...next, value];
+            state.guide.lessonStatus[action.key] = next;
+          }
+          break;
+        }
         case 'procedures/category': state.procedures.category = action.id; state.procedures.target = null; break;
         case 'procedures/target': state.procedures.target = action.id || null; break;
         case 'procedures/check': state.procedures.progress[action.key] = !!action.value; break;
@@ -153,11 +175,11 @@
         const hay = [title, aliases.join(' '), doc.body || '', doc.category || ''].join(' ').toLowerCase();
         let score = 0;
         if (title === q) score += 1000;
-        if (title.startsWith(q)) score += 600;
-        if (aliases.some(a => a === q)) score += 750;
-        if (aliases.some(a => a.startsWith(q))) score += 450;
-        if (tokens.every(t => hay.includes(t))) score += 250;
-        if (hay.includes(q)) score += 150;
+        if (title.startsWith(q)) score += 650;
+        if (aliases.some(a => a === q)) score += 800;
+        if (aliases.some(a => a.startsWith(q))) score += 500;
+        if (tokens.every(t => hay.includes(t))) score += 300;
+        if (hay.includes(q)) score += 200;
         return { ...doc, score };
       }).filter(x => x.score > 0).sort((a,b) => b.score - a.score || a.title.localeCompare(b.title)).slice(0,40);
     }
@@ -177,5 +199,5 @@
     }
   };
 
-  window.MPW = { Store, Storage, Router, Registry, Search, Lifecycle, PWA, DEFAULT_STATE, version: '1.0.0-clean' };
+  window.MPW = { Store, Storage, Router, Registry, Search, Lifecycle, PWA, DEFAULT_STATE, version: '1.0.1-clean' };
 })();
