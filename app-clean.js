@@ -6,6 +6,7 @@
   const title = document.getElementById('sectionTitle');
   const sideMenu = document.getElementById('sideMenu');
   const searchDialog = document.getElementById('searchDialog');
+  const backToTop = document.getElementById('backToTop');
 
   const routeMap = {};
   Registry.list().forEach(mod => (mod.routes||[]).forEach(r => routeMap[r] = mod));
@@ -24,23 +25,37 @@
     input.oninput=run; run(); setTimeout(()=>input.focus(),0);
   }
 
-  function render() {
+  function render(options={}) {
+    const preserve=!!options.preserveScroll;
+    const previousTop=preserve?main.scrollTop:0;
+    const previousCategoryScroll=preserve?(main.querySelector('.category-grid')?.scrollLeft||0):0;
     const s=Store.getState();
     document.documentElement.dataset.mode=s.app.mode;
     document.body.classList.toggle('compact',!!s.settings.compactMode);
     document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===s.app.mode));
     document.querySelectorAll('.bottom-nav [data-route]').forEach(b=>b.classList.toggle('active',b.dataset.route===s.app.route));
     const mod=routeMap[s.app.route] || routeMap.home;
-    title.textContent = s.app.route==='home' ? window.MPW_CONTENT.app.title : (mod.id==='mpw'?'Master Poll Worker':mod.id[0].toUpperCase()+mod.id.slice(1));
+    title.textContent = window.MPW_CONTENT.app.title;
     main.innerHTML = mod.render(s.app.route);
-    main.scrollTop=0;
+    if(preserve){
+      main.scrollTop=previousTop;
+      const grid=main.querySelector('.category-grid');
+      if(grid) grid.scrollLeft=previousCategoryScroll;
+    } else main.scrollTop=0;
     if (s.app.menuOpen && !sideMenu.open) sideMenu.showModal();
     if (!s.app.menuOpen && sideMenu.open) sideMenu.close();
     renderSearch();
+    updateBackToTop();
+  }
+
+  function updateBackToTop(){
+    if(!backToTop) return;
+    backToTop.classList.toggle('visible',main.scrollTop>320);
   }
 
   document.addEventListener('click', e => {
     const el=e.target.closest('button,a,label'); if (!el) return;
+    if (el.matches('#backToTop')) { main.scrollTo({top:0,behavior:'smooth'}); return; }
     if (el.matches('#menuButton')) { Store.dispatch({type:'app/menu',open:true}); return; }
     if (el.matches('#closeMenu')) { Store.dispatch({type:'app/menu',open:false}); return; }
     if (el.matches('[data-open-search]')) { Store.dispatch({type:'app/menu',open:false}); Store.dispatch({type:'app/search',open:true}); return; }
@@ -105,11 +120,15 @@
     const input=document.getElementById('boardInput'),text=input.value.trim(); if(text) Store.dispatch({type:'board/add',text});
   });
 
+  main.addEventListener('scroll',updateBackToTop,{passive:true});
   sideMenu.addEventListener('close',()=>{ if(Store.select(s=>s.app.menuOpen)) Store.dispatch({type:'app/menu',open:false}); });
   searchDialog.addEventListener('close',()=>{ if(Store.select(s=>s.app.searchOpen)) Store.dispatch({type:'app/search',open:false}); });
   Store.subscribe((_, action)=>{
     const textOnly = action.type==='mpw/briefing' || action.type==='training/workers' || action.type==='training/notes' || (action.type==='training/topic' && action.patch && Object.keys(action.patch).length===1 && Object.prototype.hasOwnProperty.call(action.patch,'note'));
-    if (!textOnly) render();
+    if (!textOnly) {
+      const preserve = !['app/route','app/mode','system/replace','training/newDay'].includes(action.type);
+      render({preserveScroll:preserve});
+    }
   });
   Lifecycle.init(); PWA.init(); render();
 
