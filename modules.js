@@ -21,12 +21,12 @@
     render(){
       const s=Store.getState(), mode=s.app.mode;
       const guideTotal=C.guideTopics.filter(x=>x.modes.includes(mode)).reduce((n,x)=>n+x.lessons.length,0);
-      const guideDone=Object.values(s.guide.progress).filter(Boolean).length;
+      const guideDone=Object.values(s.guide.lessonStatus).filter(v=>v==='explained'||v==='live').length;
       const trained=Object.values(s.training.topics).filter(x=>x?.status==='covered'||x?.status==='live').length;
       return `${heading('Today’s Control Center',`${modeLabel(mode)} · ${s.training.reportDate}`)}
         <section class="card hero-card"><div><p class="section-label">Field-use rule</p><h3>Procedure first. Guess never.</h3><p>Use <strong>Guide</strong> to teach the normal job. Use <strong>Procedures</strong> when something happens. Use the menu for Search and Master Poll Worker references.</p></div>${warning(C.escalation,true)}</section>
         <section class="status-grid-home">
-          <div class="stat card"><strong>${guideDone}/${guideTotal}</strong><span>Guide checks</span></div>
+          <div class="stat card"><strong>${guideDone}/${guideTotal}</strong><span>Guide lessons</span></div>
           <div class="stat card"><strong>${trained}/${C.trainingTopics.length}</strong><span>Training topics</span></div>
         </section>
         <div class="quick-grid">
@@ -44,10 +44,10 @@
       const s=Store.getState();
       const topics=C.guideTopics.filter(visible);
       return `${heading('Trainer Checklist',`${modeLabel(s.app.mode)} · teach, demonstrate, verify`)}${topics.map(t=>{
-        const open=s.guide.open===t.id;
+        const open=s.guide.open===t.id || s.app.params?.id===t.id;
         return `<article class="card guide-topic"><button class="card-toggle" data-guide-open="${esc(t.id)}" aria-expanded="${open}"><span><strong>${esc(t.title)}</strong><small>${esc(t.summary)}</small></span><span>⌄</span></button><div class="collapse ${open?'open':''}">${t.lessons.map((l,i)=>{
-          const [id,title,steps]=l,key=`${t.id}:${id}`,checked=!!s.guide.progress[key],status=s.guide.lessonStatus[key]||'';
-          return `<section class="lesson"><div class="lesson-head"><span class="step-num">${i+1}</span><h4>${esc(title)}</h4></div><ol>${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><label class="check-row"><input type="checkbox" data-guide-check="${esc(key)}" ${checked?'checked':''}> <span>Covered / verified</span></label><div class="status-buttons">${[['explained','Explained'],['live','Live'],['review','Review'],['notReached','Not reached']].map(([v,lbl])=>`<button data-guide-status="${esc(key)}" data-value="${v}" class="${status===v?'active':''}">${lbl}</button>`).join('')}</div></section>`;
+          const [id,title,steps]=l,key=`${t.id}:${id}`,status=s.guide.lessonStatus[key]||'';
+          return `<section class="lesson"><div class="lesson-head"><span class="step-num">${i+1}</span><h4>${esc(title)}</h4></div><ol>${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><p class="section-label">Training status</p><div class="status-buttons">${[['explained','Explained'],['live','Live'],['review','Review'],['notReached','Not reached']].map(([v,lbl])=>`<button data-guide-status="${esc(key)}" data-value="${v}" class="${status===v?'active':''}">${lbl}</button>`).join('')}</div></section>`;
         }).join('')}</div></article>`;
       }).join('')}`;
     },
@@ -77,15 +77,16 @@
     id:'routines', routes:['routines'],
     render(){
       const s=Store.getState();
-      const routines=C.routines.filter(visible);
-      return `${heading('Opening / Closing',`${modeLabel(s.app.mode)} routines`)}${routines.map(r=>`<article class="card routine"><div class="routine-head"><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p>${warning(r.critical,true)}</div><div class="phase-toolbar"><button data-expand-routine="${r.id}">Expand all</button><button data-collapse-routine="${r.id}">Collapse all</button></div>${r.phases.map(ph=>{const key=`${r.id}:${ph.id}`,open=!!s.routines.openPhases[key];return `<section class="phase"><button class="phase-toggle" data-phase="${key}" aria-expanded="${open}"><strong>${esc(ph.title)}</strong><span>⌄</span></button><div class="collapse ${open?'open':''}">${warning(ph.warning,false)}<ol>${ph.steps.map((step,i)=>{const ck=`${key}:${i}`,checked=!!s.routines.progress[ck];return `<li><label class="proc-step"><input type="checkbox" data-routine-check="${ck}" ${checked?'checked':''}><span>${esc(step)}</span></label></li>`}).join('')}</ol></div></section>`}).join('')}${sourceFooter(r.source)}</article>`).join('')}`;
+      let routines=C.routines.filter(visible);
+      if(s.app.params?.id) routines=routines.filter(r=>r.id===s.app.params.id);
+      return `${heading('Opening / Closing',`${modeLabel(s.app.mode)} routines`)}${s.app.params?.id?'<button class="text-button" data-clear-routine>← Back to all routines</button>':''}${routines.map(r=>`<article class="card routine"><div class="routine-head"><h3>${esc(r.title)}</h3><p>${esc(r.summary)}</p>${warning(r.critical,true)}</div><div class="phase-toolbar"><button data-expand-routine="${r.id}">Expand all</button><button data-collapse-routine="${r.id}">Collapse all</button></div>${r.phases.map((ph,index)=>{const key=`${r.id}:${ph.id}`,hasSaved=Object.prototype.hasOwnProperty.call(s.routines.openPhases,key),open=hasSaved?!!s.routines.openPhases[key]:index===0;return `<section class="phase"><button class="phase-toggle" data-phase="${key}" aria-expanded="${open}"><strong>${esc(ph.title)}</strong><span>⌄</span></button><div class="collapse ${open?'open':''}">${warning(ph.warning,false)}<ol>${ph.steps.map((step,i)=>{const ck=`${key}:${i}`,checked=!!s.routines.progress[ck];return `<li><label class="proc-step"><input type="checkbox" data-routine-check="${ck}" ${checked?'checked':''}><span>${esc(step)}</span></label></li>`}).join('')}</ol></div></section>`}).join('')}${sourceFooter(r.source)}</article>`).join('')}`;
     },
     searchDocuments(mode){return C.routines.filter(x=>x.modes.includes(mode)).map(x=>({type:'routine',id:x.id,title:x.title,body:[x.summary,...x.phases.flatMap(p=>[p.title,...p.steps])].join(' '),route:'routines'}));}
   };
 
   const MPW = {
     id:'mpw', routes:['mpw'],
-    render(){const s=Store.getState();return `${heading('Master Poll Worker Reference','Site leadership, first-round checks, escalation, and today’s notes')}<section class="card"><h3>Today’s Briefing</h3><textarea id="briefingInput" placeholder="Operational reminders to read at each site…">${esc(s.mpw.briefing)}</textarea></section>${C.mpwSections.filter(visible).map(x=>`<article class="card"><h3>${esc(x.title)}</h3>${warning(x.critical,true)}<ul>${x.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></article>`).join('')}`;},
+    render(){const s=Store.getState();let sections=C.mpwSections.filter(visible);if(s.app.params?.id) sections=sections.filter(x=>x.id===s.app.params.id);return `${heading('Master Poll Worker Reference','Site leadership, first-round checks, escalation, and today’s notes')}<section class="card"><h3>Today’s Briefing</h3><textarea id="briefingInput" placeholder="Operational reminders to read at each site…">${esc(s.mpw.briefing)}</textarea></section>${s.app.params?.id?'<button class="text-button" data-clear-mpw>← Back to all Master Poll Worker references</button>':''}${sections.map(x=>`<article class="card"><h3>${esc(x.title)}</h3>${warning(x.critical,true)}<ul>${x.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></article>`).join('')}`;},
     searchDocuments(mode){return C.mpwSections.filter(x=>!x.modes||x.modes.includes(mode)).map(x=>({type:'mpw',id:x.id,title:x.title,body:x.items.join(' '),route:'mpw'}));}
   };
 
@@ -98,7 +99,7 @@
 
   const Board = {id:'board',routes:['board'],render(){const s=Store.getState();return `${heading('Questions for the Board','Unresolved procedure questions — separate from Today’s Briefing')}<section class="card"><form id="boardForm" class="inline-form"><input id="boardInput" placeholder="Add a question to verify…"><button>Add</button></form></section><section class="card"><h3>Current verification list</h3><ul>${C.staticBoardQuestions.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section><section class="card"><h3>My questions</h3>${s.board.questions.length?s.board.questions.map(q=>`<div class="question-row"><label><input type="checkbox" data-board-toggle="${q.id}" ${q.done?'checked':''}><span class="${q.done?'done':''}">${esc(q.text)}</span></label><button data-board-remove="${q.id}" aria-label="Remove">×</button></div>`).join(''):'<p class="muted">No added questions.</p>'}</section>`;}};
 
-  const References = {id:'references',routes:['references'],render(){return `${heading('Reference Library','Standing rules, unusual situations, and official links')}${C.referenceSections.filter(visible).map(x=>`<article class="card"><h3>${esc(x.title)}</h3><ul>${x.body.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></article>`).join('')}<section class="card"><h3>Official links</h3>${C.currentLinks.map(([t,u])=>`<a class="reference-link" href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join('')}</section>`;},searchDocuments(mode){return C.referenceSections.filter(x=>!x.modes||x.modes.includes(mode)).map(x=>({type:'reference',id:x.id,title:x.title,body:x.body.join(' '),route:'references'}));}};
+  const References = {id:'references',routes:['references'],render(){const s=Store.getState();let sections=C.referenceSections.filter(visible);if(s.app.params?.id) sections=sections.filter(x=>x.id===s.app.params.id);return `${heading('Reference Library','Standing rules, unusual situations, and official links')}${s.app.params?.id?'<button class="text-button" data-clear-reference>← Back to reference library</button>':''}${sections.map(x=>`<article class="card"><h3>${esc(x.title)}</h3><ul>${x.body.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></article>`).join('')}${s.app.params?.id?'':`<section class="card"><h3>Official links</h3>${C.currentLinks.map(([t,u])=>`<a class="reference-link" href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`).join('')}</section>`}`;},searchDocuments(mode){return C.referenceSections.filter(x=>!x.modes||x.modes.includes(mode)).map(x=>({type:'reference',id:x.id,title:x.title,body:x.body.join(' '),route:'references'}));}};
 
   const EndNight = {id:'endnight',routes:['endnight'],render(){const groups=[['Maroon Bag',C.endOfNight.maroon],['Clear Envelope',C.endOfNight.clear],['Manila Envelope',C.endOfNight.manila],['Back of Voting Machine Suitcase',C.endOfNight.suitcase]];return `${heading('Election Day End-of-Night Checklist','Use the current 2025 Morris destination list')}${groups.map(([t,items])=>`<article class="card"><h3>${esc(t)}</h3><ul class="checklist-plain">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></article>`).join('')}${warning('County Clerk blue bag has its own checklist. Do not guess its contents.',false)}`;},searchDocuments(mode){return mode==='election'?[{type:'reference',id:'endnight',title:'Election Day End-of-Night Checklist',aliases:['maroon bag','clear envelope','manila envelope','suitcase'],body:Object.values(C.endOfNight).flat().join(' '),route:'endnight'}]:[];}};
 
