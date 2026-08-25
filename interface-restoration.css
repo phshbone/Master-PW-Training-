@@ -42,6 +42,35 @@
 
 .mode-strip{height:58px;padding:7px 14px;gap:8px;background:#edf3f9}.mode-button{border-radius:14px;font-size:1rem;background:#fff;border-color:#adc0d5}.mode-button.active{background:#174579;border-color:#174579}
 
+/* Guide page restoration from original mobile screenshots. */
+body[data-route="guide"] #mainContent{padding-top:20px}
+body[data-route="guide"] .page-heading{margin:0 2px 18px}
+body[data-route="guide"] .page-heading h2{font-size:1.72rem;line-height:1.08;letter-spacing:-.025em;color:#123f72;margin-bottom:8px}
+body[data-route="guide"] .page-heading p{font-size:1rem;font-weight:600;color:#68788e}
+body[data-route="guide"] .guide-topic{border-radius:20px!important;padding:18px 16px!important;margin-bottom:14px!important;background:#fff;overflow:hidden}
+body[data-route="guide"] .guide-topic:has(.collapse.open){padding:18px 16px 10px!important}
+body[data-route="guide"] .card-toggle{align-items:flex-start}
+body[data-route="guide"] .card-toggle>span:first-child{gap:7px}
+body[data-route="guide"] .card-toggle strong{font-size:1.08rem;line-height:1.12;color:#182231}
+body[data-route="guide"] .card-toggle small{font-size:.88rem;line-height:1.34;color:#6b7b90;font-weight:600}
+body[data-route="guide"] .card-toggle>span:last-child{font-size:1rem;padding-top:2px;color:#172231}
+body[data-route="guide"] .collapse{padding-top:18px}
+body[data-route="guide"] .lesson{padding:18px 0;border-top:1px solid #d7e1ec}
+body[data-route="guide"] .lesson:first-child{padding-top:8px;border-top:0}
+body[data-route="guide"] .lesson-head{gap:12px;align-items:center;margin-bottom:14px}
+body[data-route="guide"] .step-num{width:34px;height:34px;flex-basis:34px;background:#eaf2fa;font-size:.95rem;color:#123f72}
+body[data-route="guide"] .lesson-head h4{font-size:1.08rem;line-height:1.16;color:#172231}
+body[data-route="guide"] .lesson ol{margin:0 0 16px;padding-left:22px;font-size:1rem;line-height:1.46;color:#172231}
+body[data-route="guide"] .lesson li{margin:10px 0;padding-left:3px}
+body[data-route="guide"] .lesson .section-label{font-size:.78rem;letter-spacing:.11em;color:#6a788c;margin:16px 0 10px;font-weight:900}
+body[data-route="guide"] .status-buttons{gap:8px 7px;margin-top:0}
+body[data-route="guide"] .status-buttons button{font-size:.79rem;padding:8px 11px;border-radius:999px;border:1px solid #d3deea;color:#596a80;background:#fff}
+body[data-route="guide"] .status-buttons .status-explained.active,body[data-route="guide"] .status-buttons .status-live.active{background:#668978;color:#fff;border-color:#668978}
+body[data-route="guide"] .status-buttons .status-review.active{background:#bc9150;color:#fff;border-color:#bc9150}
+body[data-route="guide"] .status-buttons .status-notReached.active{background:#858e99;color:#fff;border-color:#858e99}
+body[data-route="guide"] .related-link{font-size:.9rem;border:1px solid #c7d6e6;background:#f8fafc;color:#123f72;border-radius:9px;padding:9px 11px;margin:2px 0 14px;font-weight:850}
+body[data-route="guide"] .back-to-top{background:#12467d;width:48px;height:48px}
+
 .classic-procedure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 22px}
 .classic-procedure-card{min-width:0;min-height:126px;border:1px solid #c8d5e4;border-radius:16px;background:#fff;color:var(--blue);padding:14px;text-align:left;display:flex;flex-direction:column;justify-content:center}
 .classic-procedure-card strong{font-size:1.02rem;line-height:1.14;margin-bottom:8px}.classic-procedure-card span{font-size:.82rem;line-height:1.38;color:var(--muted)}
@@ -60,6 +89,13 @@ body.interface-restored #procedure-topics.procedure-topic-grid{display:none!impo
   .classic-home-heading h2{font-size:1.48rem}
   .home-glance{padding:15px 14px}.home-glance-toggle{align-items:flex-start}.home-glance-copy strong{font-size:1.18rem}.home-glance-meta{gap:6px;max-width:54%}.mode-pill{padding:6px 10px;font-size:.75rem}.home-glance-meta b{font-size:.9rem}
   .home-tile-grid{gap:10px}.home-tile{min-height:118px;padding:14px 12px}.home-tile strong{font-size:.98rem}.home-tile span{font-size:.78rem}
+  body[data-route="guide"] #mainContent{padding-left:12px;padding-right:12px;padding-top:18px}
+  body[data-route="guide"] .page-heading h2{font-size:1.55rem}
+  body[data-route="guide"] .guide-topic{padding:16px 14px!important}
+  body[data-route="guide"] .guide-topic:has(.collapse.open){padding:16px 14px 8px!important}
+  body[data-route="guide"] .card-toggle strong{font-size:1.02rem}
+  body[data-route="guide"] .card-toggle small{font-size:.83rem}
+  body[data-route="guide"] .lesson ol{font-size:.97rem}
   .classic-procedure-grid{gap:10px}.classic-procedure-card{min-height:116px;padding:13px}.classic-procedure-card strong{font-size:.98rem}.classic-procedure-card span{font-size:.79rem}
 }
 @media(min-width:760px){.classic-procedure-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.classic-procedure-card.wide{grid-column:auto}.home-tile-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
