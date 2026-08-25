@@ -6,7 +6,6 @@
   --restored-highlight:inset 0 1px 0 rgba(255,255,255,.94),inset 0 -1px 0 rgba(18,58,109,.035);
 }
 
-/* Restore the compact old header lockup. */
 .topbar{padding-left:16px;padding-right:14px;gap:12px}
 .brand-wrap{gap:12px}
 .brand-logo{width:48px;height:48px;flex-basis:48px;border:2px solid rgba(255,255,255,.92);border-radius:13px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
@@ -14,88 +13,54 @@
 .topbar h1{font-size:1.18rem;line-height:1.05;font-weight:850}
 #menuButton{background:rgba(255,255,255,.12);border-radius:14px}
 
-/* Raised-card treatment from the original build. */
-.card,
-.guide-topic,
-.procedure-card,
-.routine,
-.training-card,
-.classic-procedure-card{
-  border-color:#cfdae7!important;
-  box-shadow:var(--restored-highlight),var(--restored-shadow)!important;
-}
-.quick.card,
-.guide-topic,
-.classic-procedure-card{
-  -webkit-tap-highlight-color:transparent;
-  transition:transform .10s ease,box-shadow .10s ease,border-color .12s ease,background-color .12s ease;
-}
-.quick.card:active,
-.classic-procedure-card:active{
-  transform:translateY(2px);
-  box-shadow:var(--restored-highlight),var(--restored-shadow-pressed)!important;
-}
-.guide-topic:has(.collapse.open){
-  border:2px solid var(--blue)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 11px 24px rgba(18,58,109,.15),0 2px 5px rgba(18,58,109,.09)!important;
-}
+.card,.guide-topic,.procedure-card,.routine,.training-card,.classic-procedure-card{border-color:#cfdae7!important;box-shadow:var(--restored-highlight),var(--restored-shadow)!important}
+.quick.card,.guide-topic,.classic-procedure-card,.home-tile{-webkit-tap-highlight-color:transparent;transition:transform .10s ease,box-shadow .10s ease,border-color .12s ease,background-color .12s ease}
+.quick.card:active,.classic-procedure-card:active,.home-tile:active{transform:translateY(2px);box-shadow:var(--restored-highlight),var(--restored-shadow-pressed)!important}
+.guide-topic:has(.collapse.open){border:2px solid var(--blue)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 11px 24px rgba(18,58,109,.15),0 2px 5px rgba(18,58,109,.09)!important}
 
-/* Old-style Procedure landing: visible, individual cards; no horizontal hunting. */
-.classic-procedure-grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-  margin:0 0 22px;
-}
-.classic-procedure-card{
-  min-width:0;
-  min-height:126px;
-  border:1px solid #c8d5e4;
-  border-radius:16px;
-  background:#fff;
-  color:var(--blue);
-  padding:14px;
-  text-align:left;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-}
-.classic-procedure-card strong{font-size:1.02rem;line-height:1.14;margin-bottom:8px}
-.classic-procedure-card span{font-size:.82rem;line-height:1.38;color:var(--muted)}
-.classic-procedure-card.last-used{
-  border:2px solid var(--blue);
-  background:#f6f9fd;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 13px 26px rgba(18,58,109,.20),0 3px 7px rgba(18,58,109,.12)!important;
-}
+.classic-home{max-width:880px;margin:0 auto}
+.classic-home-heading{margin:4px 0 16px}
+.classic-home-heading h2{margin:0;color:var(--ink);font-size:1.62rem;line-height:1.08;letter-spacing:-.02em}
+.classic-home-heading p{margin:8px 0 0;color:var(--muted);font-size:1rem;font-weight:600}
+.home-glance{padding:16px 18px;margin-bottom:16px;border-radius:18px!important}
+.home-glance-toggle{width:100%;border:0;background:transparent;padding:0;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;color:var(--ink)}
+.home-glance-copy{display:flex;flex-direction:column;min-width:0}
+.home-kicker{font-size:.72rem;font-weight:900;letter-spacing:.09em;color:var(--muted);margin-bottom:5px}
+.home-glance-copy strong{font-size:1.28rem;line-height:1.12}
+.home-glance-meta{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;color:var(--blue);font-weight:900}
+.mode-pill{border:1px solid #edc85f;background:#fff5d6;color:#946a00;padding:7px 12px;border-radius:999px;white-space:nowrap;font-size:.8rem}
+.home-glance-meta b{font-size:.98rem;white-space:nowrap}
+.chev{font-size:1rem;display:inline-block;transition:transform .15s ease}.home-glance.open .chev{transform:rotate(180deg)}
+.home-glance-body{padding-top:16px}
+.progress-row{margin-bottom:14px}.progress-row>div:first-child{display:flex;justify-content:space-between;gap:16px;align-items:center;font-size:1rem;font-weight:800}.progress-row>div:first-child strong{font-size:1.06rem}
+.progress-track{height:10px;border-radius:999px;background:#e7edf4;overflow:hidden;margin-top:9px}.progress-track i{display:block;height:100%;border-radius:999px;background:#2f80d8;min-width:0}
+.home-status-line{margin:3px 0 0!important;color:var(--muted);font-size:.88rem;font-weight:700}
+.home-tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.home-tile{min-height:128px;border:1px solid #d6e0eb;border-radius:18px;background:#fff;padding:16px 14px;text-align:left;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--restored-highlight),var(--restored-shadow);color:var(--ink)}
+.home-tile strong{font-size:1.05rem;line-height:1.1;color:var(--blue);margin-bottom:8px}.home-tile span{font-size:.82rem;line-height:1.35;color:var(--muted);font-weight:600}
+.home-field-rule{padding:18px 20px;margin-bottom:4px}.home-field-rule h3{font-size:1.15rem;margin-bottom:12px}.home-field-rule p{margin:0;font-size:1rem;line-height:1.48}
+
+.mode-strip{height:58px;padding:7px 14px;gap:8px;background:#edf3f9}.mode-button{border-radius:14px;font-size:1rem;background:#fff;border-color:#adc0d5}.mode-button.active{background:#174579;border-color:#174579}
+
+.classic-procedure-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 22px}
+.classic-procedure-card{min-width:0;min-height:126px;border:1px solid #c8d5e4;border-radius:16px;background:#fff;color:var(--blue);padding:14px;text-align:left;display:flex;flex-direction:column;justify-content:center}
+.classic-procedure-card strong{font-size:1.02rem;line-height:1.14;margin-bottom:8px}.classic-procedure-card span{font-size:.82rem;line-height:1.38;color:var(--muted)}
+.classic-procedure-card.last-used{border:2px solid var(--blue);background:#f6f9fd;box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 13px 26px rgba(18,58,109,.20),0 3px 7px rgba(18,58,109,.12)!important}
 .classic-procedure-card.wide{grid-column:1/-1;min-height:104px}
-
-/* Hide the duplicate newer topic-card strip only on the Procedures landing page.
-   The full procedure sections remain directly below the restored dashboard. */
 body.interface-restored #procedure-topics.procedure-topic-grid{display:none!important}
+.page-heading h2,.page-heading p,.procedure-category-heading h3,.procedure-card,.routine,.lesson{text-align:left}.procedure-category-section{margin-top:18px}.procedure-category-heading{padding-top:2px}
+.quick-grid{gap:12px}.quick.card{min-height:112px;border-color:#c8d5e4!important}.quick.card strong{font-size:1rem}
 
-/* Preserve scanning rhythm: headings and procedural text stay left aligned. */
-.page-heading h2,.page-heading p,.procedure-category-heading h3,.procedure-card,.routine,.lesson{text-align:left}
-.procedure-category-section{margin-top:18px}
-.procedure-category-heading{padding-top:2px}
-
-/* Make Home quick actions look like the original dashboard tiles. */
-.quick-grid{gap:12px}
-.quick.card{min-height:112px;border-color:#c8d5e4!important}
-.quick.card strong{font-size:1rem}
+.bottom-nav{grid-template-columns:repeat(6,1fr)!important;background:#10375f!important;border-top:0!important;box-shadow:none!important;padding-left:8px!important;padding-right:8px!important}
+.nav-button{color:#d4e0ef!important;border-radius:16px!important;min-height:56px}.nav-button span{font-size:1.06rem!important}.nav-button small{font-size:.64rem!important;font-weight:800}.nav-button.active{background:rgba(255,255,255,.13)!important;color:#fff!important}
 
 @media(max-width:560px){
-  .topbar{padding-left:14px}
-  .brand-logo{width:46px;height:46px;flex-basis:46px}
-  .topbar h1{font-size:1.12rem}
-  .classic-procedure-grid{gap:10px}
-  .classic-procedure-card{min-height:116px;padding:13px}
-  .classic-procedure-card strong{font-size:.98rem}
-  .classic-procedure-card span{font-size:.79rem}
+  .topbar{padding-left:14px}.brand-logo{width:46px;height:46px;flex-basis:46px}.topbar h1{font-size:1.12rem}
+  #mainContent{padding-left:12px;padding-right:12px}
+  .classic-home-heading h2{font-size:1.48rem}
+  .home-glance{padding:15px 14px}.home-glance-toggle{align-items:flex-start}.home-glance-copy strong{font-size:1.18rem}.home-glance-meta{gap:6px;max-width:54%}.mode-pill{padding:6px 10px;font-size:.75rem}.home-glance-meta b{font-size:.9rem}
+  .home-tile-grid{gap:10px}.home-tile{min-height:118px;padding:14px 12px}.home-tile strong{font-size:.98rem}.home-tile span{font-size:.78rem}
+  .classic-procedure-grid{gap:10px}.classic-procedure-card{min-height:116px;padding:13px}.classic-procedure-card strong{font-size:.98rem}.classic-procedure-card span{font-size:.79rem}
 }
-@media(min-width:760px){
-  .classic-procedure-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .classic-procedure-card.wide{grid-column:auto}
-}
-@media(prefers-reduced-motion:reduce){
-  .quick.card,.guide-topic,.classic-procedure-card{transition:none}
-}
+@media(min-width:760px){.classic-procedure-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.classic-procedure-card.wide{grid-column:auto}.home-tile-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.quick.card,.guide-topic,.classic-procedure-card,.home-tile,.chev{transition:none}}
