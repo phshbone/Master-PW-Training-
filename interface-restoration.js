@@ -111,6 +111,7 @@
   function restoreInterface(){
     const s=Store.getState();
     document.body.classList.add('interface-restored');
+    document.body.dataset.route=s.app.route;
     if(title) title.textContent=currentTitle(s);
     homeDashboard();
     procedureDashboard();
