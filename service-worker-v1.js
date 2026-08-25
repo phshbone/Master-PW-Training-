@@ -1,5 +1,5 @@
-const CACHE='mpw-clean-1.1.2';
-const STATIC=['./','./index.html','./styles-clean.css','./procedures-grid.css','./navigation-repair.css','./header-logo.css','./interface-restoration.css','./core.js','./content.js','./modules.js','./app-clean.js','./interface-restoration.js','./manifest.webmanifest','./assets/icon-192.png','./assets/icon-512.png','./assets/logo-mark.png'];
+const CACHE='mpw-clean-1.1.3';
+const STATIC=['./','./index.html','./styles-clean.css','./procedures-grid.css','./navigation-repair.css','./header-logo.css','./interface-restoration.css','./core.js','./content.js','./modules.js','./app-clean.js','./interface-restoration.js','./manifest.webmanifest','./apple-touch-icon.png','./assets/pwa-icon-192.png','./assets/pwa-icon-512.png','./assets/icon-192.png','./assets/icon-512.png','./assets/logo-mark.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
